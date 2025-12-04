@@ -177,7 +177,7 @@ export default function GroupChat({ currentUser }: Props) {
       isLastInGroup?: boolean;
     }
   ) => {
-    const { isPinnedView = false, isFirstInGroup = true, isLastInGroup = true } =
+    const { isPinnedView = false, isLastInGroup = true } =
       opts || {};
 
     const isMe = msg.sender === currentUser;
