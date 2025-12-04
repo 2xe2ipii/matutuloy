@@ -93,7 +93,8 @@ export default function AvailabilityHeatmap({ currentMonth = new Date(), current
   const startingDayIndex = getDay(startOfMonth(currentMonth));
 
   return (
-    <div className="w-full max-w-lg mx-auto p-6 bg-white rounded-2xl shadow-xl border border-gray-100">
+    // <div className="w-full max-w-lg mx-auto p-6 bg-white rounded-2xl shadow-xl border border-gray-100">
+    <div className="w-full p-6 bg-white rounded-2xl shadow-xl border border-gray-100">
       <div className="flex justify-between items-end mb-6">
         <h2 className="text-2xl font-bold text-gray-800">
           {format(currentMonth, 'MMMM yyyy')}
