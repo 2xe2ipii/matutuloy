@@ -11,6 +11,7 @@ import { clsx } from "clsx";
 
 interface Props {
   currentUser: string;
+  userAvatars: Record<string, string>;
 }
 
 interface Message {
@@ -27,18 +28,54 @@ interface Message {
   reactions?: Record<string, string>;
 }
 
-const EMOJIS = ["👍", "❤️", "😂", "😮", "😢", "😡"];
+// Updated Emoji Set
+const EMOJIS = ["👍", "❤️", "😆", "😮", "😢", "😡"];
 const MAX_CHARS = 500;
 const LONG_PRESS_MS = 450;
 
-export default function GroupChat({ currentUser }: Props) {
+// Reusable Grey Pin Icon for consistency
+const PinIcon = ({ className }: { className?: string }) => (
+  <svg 
+    width="16" 
+    height="16" 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2.5" 
+    strokeLinecap="round" 
+    strokeLinejoin="round"
+    className={className}
+  >
+    <line x1="12" y1="17" x2="12" y2="22"/>
+    <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/>
+  </svg>
+);
+
+const UnpinIcon = ({ className }: { className?: string }) => (
+  <svg 
+    width="16" 
+    height="16" 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2.5" 
+    strokeLinecap="round" 
+    strokeLinejoin="round"
+    className={className}
+  >
+    <line x1="2" y1="2" x2="22" y2="22" />
+    <path d="M12 17v5" />
+    <path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16h9" />
+    <path d="M15 4h-3c-.6 0-1.1.2-1.5.6" />
+  </svg>
+);
+
+export default function GroupChat({ currentUser, userAvatars }: Props) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
 
-  const [activeReactMenuId, setActiveReactMenuId] = useState<string | null>(
-    null
-  );
+  const [activeReactMenuId, setActiveReactMenuId] = useState<string | null>(null);
   const [activeActionId, setActiveActionId] = useState<string | null>(null);
   const [showPinnedView, setShowPinnedView] = useState(false);
 
@@ -46,7 +83,9 @@ export default function GroupChat({ currentUser }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
 
+  // Interaction Refs
   const longPressTimeoutRef = useRef<number | null>(null);
+  const skipNextClickRef = useRef(false);
 
   // 1. Listen for messages
   useEffect(() => {
@@ -80,7 +119,7 @@ export default function GroupChat({ currentUser }: Props) {
     setShouldAutoScroll(isNearBottom);
   };
 
-  // 3. Long-press handlers (for mobile)
+  // 3. Long-press handlers
   const clearLongPressTimer = () => {
     if (longPressTimeoutRef.current !== null) {
       window.clearTimeout(longPressTimeoutRef.current);
@@ -90,12 +129,16 @@ export default function GroupChat({ currentUser }: Props) {
 
   const handlePointerDownOnMessage =
     (msgId: string) => (e: ReactPointerEvent<HTMLDivElement>) => {
-      // Mouse uses hover; touch/pen uses long press
-      if (e.pointerType === "mouse") return;
+      if (e.pointerType === "mouse") return; // Mouse uses hover
 
       clearLongPressTimer();
       longPressTimeoutRef.current = window.setTimeout(() => {
         setActiveActionId(msgId);
+        // Important: When the timer fires (menu opens), we flag to ignore 
+        // the immediate "click" that happens when the user lifts their finger.
+        skipNextClickRef.current = true;
+        // Reset the flag after a short delay so normal clicks work again
+        setTimeout(() => { skipNextClickRef.current = false; }, 400);
       }, LONG_PRESS_MS);
     };
 
@@ -132,7 +175,7 @@ export default function GroupChat({ currentUser }: Props) {
     setNewMessage("");
     setReplyingTo(null);
     setShouldAutoScroll(true);
-    setActiveActionId(null);
+    closeAllMenus();
   };
 
   // 5. Actions
@@ -149,12 +192,20 @@ export default function GroupChat({ currentUser }: Props) {
         [currentUser]: emoji,
       });
     }
-    setActiveReactMenuId(null);
+    closeAllMenus();
   };
 
   const togglePin = (msg: Message) => {
     update(ref(db, `messages/${msg.id}`), { isPinned: !msg.isPinned });
+    closeAllMenus();
+  };
+
+  const closeAllMenus = () => {
+    // If the long-press just fired, ignore the backdrop click
+    if (skipNextClickRef.current) return;
+    
     setActiveActionId(null);
+    setActiveReactMenuId(null);
   };
 
   const getGroupedReactions = (reactions: Record<string, string>) => {
@@ -177,26 +228,20 @@ export default function GroupChat({ currentUser }: Props) {
       isLastInGroup?: boolean;
     }
   ) => {
-    const { isPinnedView = false, isLastInGroup = true } =
-      opts || {};
+    const { isPinnedView = false, isLastInGroup = true } = opts || {};
 
     const isMe = msg.sender === currentUser;
     const groupedReactions = msg.reactions ? getGroupedReactions(msg.reactions) : [];
-
-    // Name + avatar should sit with the LAST message in a streak, or in pinned view
-    const showSenderLabel = !isMe && (isPinnedView || isLastInGroup);
     const showAvatar = !isMe && (isPinnedView || isLastInGroup);
-
-    // Only last message in a streak shows time (or pinned view)
     const showTimestamp = isPinnedView || isLastInGroup;
-
     const outerMarginClass = isLastInGroup ? "mb-5" : "mb-1";
+    const isActionOpen = activeActionId === msg.id;
 
     return (
       <div
         key={msg.id}
         className={clsx(
-          "group flex flex-col relative",
+          "group flex flex-col relative select-none", 
           isMe ? "items-end" : "items-start",
           outerMarginClass
         )}
@@ -204,72 +249,81 @@ export default function GroupChat({ currentUser }: Props) {
         onPointerUp={handlePointerUpOnMessage}
         onPointerLeave={handlePointerLeaveOnMessage}
         onPointerCancel={handlePointerLeaveOnMessage}
+        onContextMenu={(e) => e.preventDefault()}
       >
-        {showSenderLabel && (
-          <span className="text-[10px] text-gray-400 ml-9 mb-1">{msg.sender}</span>
-        )}
-
         <div
           className={clsx(
-            "flex items-end gap-2 max-w-[80%]",
+            "flex items-end gap-2 max-w-[85%]",
             isMe ? "justify-end" : ""
           )}
         >
-          {/* Avatar on the left side only for non-me messages */}
+          {/* Avatar Area */}
           {!isMe && (
             <div
               className={clsx(
-                "shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold mb-1",
-                isPinnedView ? "bg-slate-200 text-slate-500" : "",
+                "shrink-0 w-10 h-10 rounded-full flex items-center justify-center mb-1 border-2 border-white shadow-sm overflow-hidden bg-gray-100",
                 !showAvatar && !isPinnedView && "opacity-0"
               )}
             >
-              {showAvatar ? msg.sender[0] : ""}
+              {showAvatar || isPinnedView ? (
+                 userAvatars[msg.sender] ? (
+                   <img src={userAvatars[msg.sender]} alt={msg.sender} className="w-full h-full object-cover" />
+                 ) : (
+                   <span className="text-[10px] font-bold text-gray-500">{msg.sender[0]}</span>
+                 )
+              ) : ""}
             </div>
           )}
 
-          {/* Wrapper: content-based width */}
+          {/* Wrapper */}
           <div className={clsx("flex flex-col relative w-fit max-w-full")}>
-            {/* Bubble */}
+            
+            {/* Message Bubble */}
             <div
               className={clsx(
-                "px-4 py-2 text-sm shadow-sm break-words relative",
+                "px-4 py-2 text-sm shadow-sm break-words relative transition-all duration-200",
                 isMe
                   ? "bg-blue-500 text-white"
                   : "bg-white border border-gray-200 text-gray-700",
                 isMe ? "rounded-2xl rounded-br-sm" : "rounded-2xl rounded-bl-sm",
-                msg.isPinned && "ring-2 ring-yellow-400 ring-offset-1"
+                // Show yellow ring if pinned
+                msg.isPinned && "ring-2 ring-yellow-400 ring-offset-1",
+                // Show blue ring if menu open
+                isActionOpen && "ring-2 ring-blue-300 ring-offset-1 scale-[1.02]"
               )}
             >
-              {/* Reply preview (Messenger-style nested bubble) */}
+              {/* Reply preview */}
               {msg.replyTo && (
                 <div
                   className={clsx(
-                    "mb-2 px-3 py-1 rounded-2xl text-[11px] leading-snug truncate",
+                    "mb-2 px-3 py-1.5 rounded-xl text-[11px] leading-snug truncate border-l-2",
                     isMe
-                      ? "bg-white/20 text-blue-50"
-                      : "bg-gray-100 text-gray-600"
+                      ? "bg-white/20 text-blue-50 border-white/40"
+                      : "bg-gray-100 text-gray-600 border-gray-300"
                   )}
                 >
-                  <span className="block text-[10px] opacity-80 mb-0.5">
-                    Replying to <b>{msg.replyTo.sender}</b>
+                  <span className="block text-[10px] font-bold opacity-90 mb-0.5">
+                     {msg.replyTo.sender}
                   </span>
-                  <span className="block truncate">{msg.replyTo.text}</span>
+                  <span className="block truncate opacity-80">{msg.replyTo.text}</span>
                 </div>
               )}
 
-              <span>{msg.text}</span>
+              <span className="leading-relaxed">{msg.text}</span>
 
-              {/* Reactions summary below bubble */}
+              {/* Reactions */}
               {groupedReactions.length > 0 && (
-                <div className="absolute -bottom-3 right-0 flex bg-white rounded-full shadow-sm border border-gray-100 px-1 py-0.5 scale-90 gap-1 z-10">
+                <div className={clsx(
+                  "absolute -bottom-3 flex bg-white rounded-full shadow-md border border-gray-100 px-1.5 py-0.5 scale-90 gap-1 z-10 items-center",
+                  isMe ? "right-0" : "left-0"
+                )}>
                   {groupedReactions.map(([emoji, users]) => (
                     <div
                       key={emoji}
                       title={`Reacted by: ${users.join(", ")}`}
                       className="flex items-center gap-0.5 cursor-help"
                     >
-                      <span className="text-[10px]">{emoji}</span>
+                      <span className="text-[12px]">{emoji}</span>
                       {users.length > 1 && (
                         <span className="text-[9px] text-gray-500 font-bold">
                           {users.length}
@@ -281,78 +335,90 @@ export default function GroupChat({ currentUser }: Props) {
               )}
             </div>
 
-            {/* Action bar (Reply / React / Pin) */}
-            {!isPinnedView && (
-              <div
-                className={clsx(
-                  "absolute transition-opacity flex gap-1 bg-white shadow-md rounded-full p-1 z-20 border border-gray-100",
-                  "-top-8",
-                  isMe ? "right-0" : "left-0",
-                  activeActionId === msg.id
-                    ? "opacity-100"
-                    : "opacity-0 group-hover:opacity-100"
-                )}
-              >
+            {/* Action bar (Now appears in Pinned View too) */}
+            <div
+              className={clsx(
+                "absolute transition-all flex items-center gap-1 bg-white shadow-xl rounded-full p-1.5 z-30 border border-gray-100",
+                "-top-10",
+                isMe ? "right-0" : "left-0",
+                isActionOpen
+                  ? "opacity-100 scale-100 translate-y-0"
+                  : "opacity-0 scale-95 translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:scale-100 group-hover:pointer-events-auto"
+              )}
+            >
+              {/* Reply Button (Only show if NOT in pinned view) */}
+              {!isPinnedView && (
                 <button
                   onClick={() => {
                     setReplyingTo(msg);
-                    setActiveActionId(null);
+                    closeAllMenus();
                   }}
-                  className="p-1 hover:bg-gray-100 rounded-full text-xs"
+                  className="p-2 hover:bg-gray-100 rounded-full text-gray-500 hover:text-blue-500 transition-colors"
                   title="Reply"
                 >
-                  ↩️
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M9 14 4 9l5-5"/>
+                      <path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/>
+                  </svg>
                 </button>
+              )}
+              
+              {/* React Button (Only show if NOT in pinned view) */}
+              {!isPinnedView && (
                 <button
                   onClick={() => {
                     setActiveReactMenuId(msg.id);
                     setActiveActionId(null);
                   }}
-                  className="p-1 hover:bg-gray-100 rounded-full text-xs"
+                  className="p-2 hover:bg-gray-100 rounded-full text-gray-500 hover:text-yellow-500 transition-colors"
                   title="React"
                 >
-                  😀
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+                    <line x1="9" y1="9" x2="9.01" y2="9"/>
+                    <line x1="15" y1="9" x2="15.01" y2="9"/>
+                  </svg>
                 </button>
-                <button
-                  onClick={() => togglePin(msg)}
-                  className="p-1 hover:bg-gray-100 rounded-full text-xs"
-                  title={msg.isPinned ? "Unpin" : "Pin"}
-                >
-                  {msg.isPinned ? "🚫" : "📌"}
-                </button>
-              </div>
-            )}
+              )}
+
+              {/* Pin Button (Standard Grey Icon) */}
+              <button
+                onClick={() => togglePin(msg)}
+                className={clsx(
+                  "p-2 hover:bg-gray-100 rounded-full transition-colors",
+                  msg.isPinned ? "text-gray-900 bg-gray-100" : "text-gray-500 hover:text-gray-900"
+                )}
+                title={msg.isPinned ? "Unpin" : "Pin"}
+              >
+                  {msg.isPinned ? <UnpinIcon /> : <PinIcon />}
+              </button>
+            </div>
 
             {/* Emoji reaction menu */}
             {activeReactMenuId === msg.id && (
-              <>
-                <div
-                  className="fixed inset-0 z-40 cursor-default"
-                  onClick={() => setActiveReactMenuId(null)}
-                />
-                <div
-                  className={clsx(
-                    "absolute top-full z-50 bg-white shadow-xl rounded-full p-1 flex gap-1 border border-gray-100 animate-in fade-in zoom-in duration-200 mt-2",
-                    isMe ? "right-0 origin-top-right" : "left-0 origin-top-left"
-                  )}
-                >
-                  {EMOJIS.map((emoji) => (
-                    <button
-                      key={emoji}
-                      onClick={() => toggleReaction(msg.id, emoji)}
-                      className="hover:scale-125 transition-transform p-1 text-lg"
-                    >
-                      {emoji}
-                    </button>
-                  ))}
-                </div>
-              </>
+              <div
+                className={clsx(
+                  "absolute top-full z-50 bg-white shadow-xl rounded-full p-2 flex gap-2 border border-gray-100 animate-in fade-in zoom-in duration-200 mt-2",
+                  isMe ? "right-0 origin-top-right" : "left-0 origin-top-left"
+                )}
+              >
+                {EMOJIS.map((emoji) => (
+                  <button
+                    key={emoji}
+                    onClick={() => toggleReaction(msg.id, emoji)}
+                    className="hover:scale-125 transition-transform text-xl active:scale-95"
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
             )}
           </div>
         </div>
 
         {showTimestamp && (
-          <span className="text-[9px] text-gray-300 mt-1 px-1">
+          <span className="text-[9px] text-gray-400 mt-1 px-1 select-none">
             {format(msg.timestamp, "h:mm a")}
           </span>
         )}
@@ -363,21 +429,36 @@ export default function GroupChat({ currentUser }: Props) {
   // 7. Render
   return (
     <div className="flex flex-col h-[600px] bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden relative">
+      
+      {/* GLOBAL CLICK BACKDROP */}
+      {(activeActionId || activeReactMenuId) && (
+        <div 
+          className="absolute inset-0 z-20 bg-transparent cursor-default"
+          onClick={closeAllMenus}
+          onContextMenu={(e) => { e.preventDefault(); closeAllMenus(); }}
+        />
+      )}
+
+      {/* HEADER */}
       <div className="p-4 bg-slate-50 border-b border-gray-100 flex justify-between items-center shrink-0">
-        <div>
+        <div className="flex items-center gap-3">
           <h2 className="font-bold text-gray-700">Group Chat</h2>
+          
+          {/* New Clean Pin Button */}
           {pinnedMessages.length > 0 && (
             <button
               onClick={() => setShowPinnedView(true)}
-              className="text-[10px] text-blue-500 font-medium flex items-center gap-1 hover:underline cursor-pointer"
+              className="flex items-center gap-1.5 bg-white border border-gray-200 px-3 py-1 rounded-full shadow-sm hover:bg-gray-50 transition-colors text-xs font-semibold text-gray-600"
             >
-              📌 {pinnedMessages.length} pinned (Click to view)
+              <PinIcon className="w-3 h-3 text-gray-500" />
+              <span>{pinnedMessages.length}</span>
             </button>
           )}
         </div>
         <span className="text-xs text-gray-400">{messages.length} msgs</span>
       </div>
 
+      {/* MESSAGE LIST */}
       <div
         ref={containerRef}
         onScroll={handleScroll}
@@ -402,15 +483,22 @@ export default function GroupChat({ currentUser }: Props) {
         <div ref={bottomRef} />
       </div>
 
+      {/* PINNED MESSAGES OVERLAY */}
       {showPinnedView && (
         <div className="absolute inset-0 z-50 bg-slate-50/95 backdrop-blur-sm flex flex-col animate-in fade-in duration-200">
           <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-white shadow-sm">
-            <h3 className="font-bold text-gray-800">📌 Pinned Messages</h3>
+            <h3 className="font-bold text-gray-800 flex items-center gap-2">
+              <PinIcon className="w-4 h-4" /> 
+              Pinned Messages
+            </h3>
             <button
-              onClick={() => setShowPinnedView(false)}
-              className="text-gray-400 hover:text-gray-600"
+              onClick={() => {
+                setShowPinnedView(false);
+                closeAllMenus();
+              }}
+              className="text-gray-400 hover:text-gray-600 text-sm font-medium"
             >
-              ✕ Close
+              Close
             </button>
           </div>
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -426,12 +514,6 @@ export default function GroupChat({ currentUser }: Props) {
                     isFirstInGroup: true,
                     isLastInGroup: true,
                   })}
-                  <button
-                    onClick={() => togglePin(msg)}
-                    className="absolute top-2 right-2 text-xs bg-white border border-gray-200 px-2 py-1 rounded-full shadow-sm text-red-500 font-bold opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    Unpin 🚫
-                  </button>
                 </div>
               ))
             )}
@@ -439,6 +521,7 @@ export default function GroupChat({ currentUser }: Props) {
         </div>
       )}
 
+      {/* REPLY PREVIEW */}
       {replyingTo && (
         <div className="px-4 py-2 bg-gray-50 border-t border-gray-200 flex justify-between items-center text-xs text-gray-500 shrink-0">
           <span className="truncate max-w-[80%]">
@@ -453,9 +536,10 @@ export default function GroupChat({ currentUser }: Props) {
         </div>
       )}
 
+      {/* INPUT AREA */}
       <form
         onSubmit={sendMessage}
-        className="p-3 bg-white border-t border-gray-100 flex gap-2 shrink-0"
+        className="p-3 bg-white border-t border-gray-100 flex gap-2 shrink-0 z-40"
       >
         <div className="relative flex-1">
           <input
@@ -475,7 +559,10 @@ export default function GroupChat({ currentUser }: Props) {
           disabled={!newMessage.trim()}
           className="bg-blue-500 text-white rounded-full p-2 w-10 h-10 flex items-center justify-center hover:bg-blue-600 disabled:opacity-50 transition-all shadow-md"
         >
-          ➤
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
         </button>
       </form>
     </div>
