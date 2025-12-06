@@ -3,7 +3,8 @@ import { ref, onValue, set } from "firebase/database";
 import { db } from "./firebase";
 import AvailabilityHeatmap from "./components/AvailabilityHeatmap";
 import ProfileSelector from "./components/ProfileSelector";
-import GroupChat from "./components/GroupChat"; 
+import GroupChat from "./components/GroupChat";
+import ThemeSelector from "./components/ThemeSelector";
 import logo from "./assets/logo.png";
 import Cropper from 'react-easy-crop';
 import { getCroppedImg } from './canvasUtils';
@@ -80,16 +81,16 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col p-4 md:p-8 relative">
+    <div className="min-h-screen bg-skin-base text-skin-text flex flex-col p-4 md:p-8 relative">
       
       {/* HEADER */}
       {currentUser && (
-        <div className="w-full max-w-7xl mx-auto flex justify-between items-center mb-4 sticky top-0 z-30 bg-slate-50/90 backdrop-blur-sm py-2">
+        <div className="w-full max-w-7xl mx-auto flex justify-between items-center mb-4 sticky top-0 z-30 bg-skin-base/90 backdrop-blur-sm py-2">
            <div className="flex items-center gap-3">
               <img src={logo} alt="Logo" className="w-10 h-10 object-contain" />
               <div>
-                <h1 className="text-xl md:text-2xl font-black text-slate-800 tracking-tight leading-none">Free Ka Ba?</h1>
-                <p className="text-[10px] md:text-xs text-slate-400 font-medium">Trip Planner</p>
+                <h1 className="text-xl md:text-2xl font-black text-skin-text tracking-tight leading-none">Free Ka Ba?</h1>
+                <p className="text-[10px] md:text-xs text-skin-muted font-medium">Trip Planner</p>
               </div>
            </div>
            
@@ -102,7 +103,7 @@ export default function App() {
                {userAvatars[currentUser] ? (
                  <img src={userAvatars[currentUser]} alt="Me" className="w-10 h-10 rounded-full border-2 border-white shadow-md object-cover" />
                ) : (
-                 <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold shadow-md">
+                 <div className="w-10 h-10 rounded-full bg-skin-primary flex items-center justify-center text-skin-primary-fg font-bold shadow-md">
                    {currentUser[0]}
                  </div>
                )}
@@ -111,18 +112,18 @@ export default function App() {
              {isMenuOpen && (
                <>
                  <div className="fixed inset-0 z-10" onClick={() => setIsMenuOpen(false)} />
-                 <div className="absolute right-0 top-12 w-48 bg-white rounded-xl shadow-xl border border-gray-100 z-20 overflow-hidden animate-in fade-in zoom-in duration-100 origin-top-right">
-                   <div className="px-4 py-3 border-b border-gray-50 bg-gray-50/50">
-                      <p className="text-xs text-gray-400 font-medium">Signed in as</p>
-                      <p className="font-bold text-gray-800">{currentUser}</p>
+                 <div className="absolute right-0 top-12 w-48 bg-skin-card rounded-xl shadow-xl border border-skin-muted/20 z-20 overflow-hidden animate-in fade-in zoom-in duration-100 origin-top-right">
+                   <div className="px-4 py-3 border-b border-skin-muted/10 bg-skin-base/50">
+                      <p className="text-xs text-skin-muted font-medium">Signed in as</p>
+                      <p className="font-bold text-skin-text">{currentUser}</p>
                    </div>
-                   <label className="block w-full text-left px-4 py-3 text-sm text-gray-600 hover:bg-blue-50 hover:text-blue-600 cursor-pointer transition-colors">
+                   <label className="block w-full text-left px-4 py-3 text-sm text-skin-text hover:bg-skin-primary hover:text-skin-primary-fg cursor-pointer transition-colors">
                       Change Icon
                       <input type="file" onChange={handleFileChange} accept="image/*" className="hidden" />
                    </label>
                    <button 
                      onClick={() => { setCurrentUser(null); setIsMenuOpen(false); }}
-                     className="block w-full text-left px-4 py-3 text-sm text-red-500 hover:bg-red-50 font-medium transition-colors"
+                     className="block w-full text-left px-4 py-3 text-sm text-red-500 hover:bg-red-50/20 font-medium transition-colors"
                    >
                      Switch Profile
                    </button>
@@ -136,8 +137,8 @@ export default function App() {
       {/* CHANGE ICON MODAL */}
       {showPhotoUpload && imageSrc && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-           <div className="bg-white w-full max-w-md rounded-2xl p-4 shadow-2xl flex flex-col gap-4">
-              <h3 className="font-bold text-gray-800">Crop your new icon</h3>
+           <div className="bg-skin-card w-full max-w-md rounded-2xl p-4 shadow-2xl flex flex-col gap-4">
+              <h3 className="font-bold text-skin-text">Crop your new icon</h3>
               <div className="relative w-full h-64 bg-slate-900 rounded-xl overflow-hidden">
                 <Cropper
                   image={imageSrc}
@@ -150,8 +151,8 @@ export default function App() {
                 />
               </div>
               <div className="flex justify-end gap-2">
-                <button onClick={() => setShowPhotoUpload(false)} className="px-4 py-2 text-sm text-gray-500">Cancel</button>
-                <button onClick={saveNewIcon} className="px-4 py-2 bg-blue-500 text-white rounded-full text-sm font-bold">Save Icon</button>
+                <button onClick={() => setShowPhotoUpload(false)} className="px-4 py-2 text-sm text-skin-muted">Cancel</button>
+                <button onClick={saveNewIcon} className="px-4 py-2 bg-skin-primary text-skin-primary-fg rounded-full text-sm font-bold">Save Icon</button>
               </div>
            </div>
         </div>
@@ -163,13 +164,13 @@ export default function App() {
           className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
           onClick={() => setAttendeeModalData(null)}
         >
-          <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-xs w-full animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+          <div className="bg-skin-card rounded-2xl shadow-2xl p-6 max-w-xs w-full animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
              <div className="flex justify-between items-start mb-4">
                <div>
-                 <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Availability</p>
-                 <h3 className="text-xl font-black text-gray-800">{format(attendeeModalData.date, 'MMMM d')}</h3>
+                 <p className="text-xs text-skin-muted font-bold uppercase tracking-wider">Availability</p>
+                 <h3 className="text-xl font-black text-skin-text">{format(attendeeModalData.date, 'MMMM d')}</h3>
                </div>
-               <button onClick={() => setAttendeeModalData(null)} className="text-gray-400 hover:text-gray-600">✕</button>
+               <button onClick={() => setAttendeeModalData(null)} className="text-skin-muted hover:text-skin-text">✕</button>
              </div>
              
              {attendeeModalData.names.length > 0 ? (
@@ -179,19 +180,19 @@ export default function App() {
                     {attendeeModalData.names.map(name => (
                       <div key={name} className="flex flex-col items-center gap-1">
                          {userAvatars[name] ? (
-                           <img src={userAvatars[name]} alt={name} className="w-10 h-10 rounded-full border border-gray-100 object-cover" />
+                           <img src={userAvatars[name]} alt={name} className="w-10 h-10 rounded-full border border-skin-muted/20 object-cover" />
                          ) : (
-                           <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs">
+                           <div className="w-10 h-10 rounded-full bg-skin-primary/20 text-skin-primary flex items-center justify-center font-bold text-xs">
                              {name[0]}
                            </div>
                          )}
-                         <span className="text-[10px] text-gray-500 truncate w-full text-center">{name}</span>
+                         <span className="text-[10px] text-skin-muted truncate w-full text-center">{name}</span>
                       </div>
                     ))}
                  </div>
                </div>
              ) : (
-               <p className="text-sm text-gray-400 py-4 text-center">No one is free on this day yet. 😢</p>
+               <p className="text-sm text-skin-muted py-4 text-center">No one is free on this day yet. 😢</p>
              )}
           </div>
         </div>
@@ -212,11 +213,11 @@ export default function App() {
            <div className="lg:col-span-2 flex flex-col gap-4">
               
               {/* Mobile Toggle for Calendar */}
-              <div className="lg:hidden flex justify-between items-center bg-white p-3 rounded-xl shadow-sm border border-gray-100">
-                 <span className="text-sm font-bold text-gray-700">Calendar</span>
+              <div className="lg:hidden flex justify-between items-center bg-skin-card p-3 rounded-xl shadow-sm border border-skin-muted/20">
+                 <span className="text-sm font-bold text-skin-text">Calendar</span>
                  <button 
                     onClick={() => setIsCalendarExpanded(!isCalendarExpanded)}
-                    className="text-xs bg-slate-100 text-slate-600 px-3 py-1.5 rounded-full font-medium"
+                    className="text-xs bg-skin-base text-skin-text px-3 py-1.5 rounded-full font-medium"
                  >
                    {isCalendarExpanded ? "Hide" : "Show"}
                  </button>
@@ -247,6 +248,9 @@ export default function App() {
 
         </div>
       )}
+      
+      {/* THEME SELECTOR */}
+      <ThemeSelector />
     </div>
   );
 }

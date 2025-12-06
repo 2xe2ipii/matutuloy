@@ -188,38 +188,38 @@ export default function ProfileSelector({ friends, onSelect }: Props) {
   if (selectedFriend && mode === 'onboarding_photo') {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] w-full max-w-md mx-auto p-4 animate-in fade-in zoom-in duration-200">
-        <h2 className="text-2xl font-bold text-slate-800 mb-2">Upload Profile Photo</h2>
-        <p className="text-slate-500 text-sm mb-6 text-center">
+        <h2 className="text-2xl font-bold text-skin-text mb-2">Upload Profile Photo</h2>
+        <p className="text-skin-muted text-sm mb-6 text-center">
           Let everyone know it's you!
         </p>
 
         {!imageSrc ? (
           <div className="w-full flex flex-col items-center gap-4">
-            <label className="w-32 h-32 rounded-full bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center cursor-pointer hover:bg-slate-50 transition-colors">
-              <span className="text-slate-400 text-xs text-center px-2">Click to upload</span>
+            <label className="w-32 h-32 rounded-full bg-skin-base border-2 border-dashed border-skin-muted/40 flex items-center justify-center cursor-pointer hover:bg-skin-base/80 transition-colors">
+              <span className="text-skin-muted text-xs text-center px-2">Click to upload</span>
               <input type="file" onChange={onFileChange} accept="image/*" className="hidden" />
             </label>
-            <button onClick={handleSkipPhoto} className="text-slate-400 text-sm hover:underline">
+            <button onClick={handleSkipPhoto} className="text-skin-muted text-sm hover:underline">
               Skip for now
             </button>
           </div>
         ) : (
           <div className="flex flex-col items-center w-full gap-4">
-            <div className="relative w-40 h-40 bg-slate-100 rounded-full overflow-hidden shadow-lg border-4 border-white">
+            <div className="relative w-40 h-40 bg-skin-base rounded-full overflow-hidden shadow-lg border-4 border-skin-card">
               <img src={imageSrc} alt="Preview" className="w-full h-full object-cover" />
             </div>
-            <p className="text-xs text-slate-400">Photo will be automatically centered</p>
+            <p className="text-xs text-skin-muted">Photo will be automatically centered</p>
             <div className="flex gap-4 w-full justify-center">
               <button 
                 onClick={() => setImageSrc(null)}
-                className="px-4 py-2 text-slate-500 text-sm font-medium hover:bg-slate-100 rounded-full"
+                className="px-4 py-2 text-skin-muted text-sm font-medium hover:bg-skin-base rounded-full"
               >
                 Cancel
               </button>
               <button 
                 onClick={handleSavePhoto}
                 disabled={loading}
-                className="px-6 py-2 bg-blue-500 text-white rounded-full text-sm font-bold shadow-md hover:bg-blue-600 disabled:opacity-50"
+                className="px-6 py-2 bg-skin-primary text-skin-primary-fg rounded-full text-sm font-bold shadow-md hover:opacity-90 disabled:opacity-50"
               >
                 {loading ? 'Saving...' : 'Looks Good!'}
               </button>
@@ -234,10 +234,10 @@ export default function ProfileSelector({ friends, onSelect }: Props) {
   if (selectedFriend && (mode === 'create' || mode === 'enter')) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] animate-in fade-in zoom-in duration-200">
-        <h2 className="text-2xl font-bold text-slate-800 mb-2">
+        <h2 className="text-2xl font-bold text-skin-text mb-2">
           {mode === 'create' ? `Create PIN for ${selectedFriend}` : `Welcome back, ${selectedFriend}`}
         </h2>
-        <p className="text-slate-500 text-sm mb-8">
+        <p className="text-skin-muted text-sm mb-8">
           {mode === 'create' ? "Set a 4-digit security code." : "Enter your security code."}
         </p>
         <div className="flex gap-4 mb-6">
@@ -255,9 +255,9 @@ export default function ProfileSelector({ friends, onSelect }: Props) {
                 className={clsx(
                   "w-12 h-14 text-center text-2xl font-bold rounded-xl border-2 outline-none transition-all",
                   digit 
-                    ? "border-blue-500 bg-blue-50 text-blue-900" 
-                    : "border-slate-200 bg-white focus:border-blue-400 focus:ring-4 focus:ring-blue-100",
-                  error && "border-red-300 bg-red-50"
+                    ? "border-skin-primary bg-skin-primary/10 text-skin-primary" 
+                    : "border-skin-muted/30 bg-skin-card focus:border-skin-primary focus:ring-4 focus:ring-skin-primary/10",
+                  error && "border-red-300 bg-red-50/40"
                 )}
               />
             ))}
@@ -265,7 +265,7 @@ export default function ProfileSelector({ friends, onSelect }: Props) {
         {error && <p className="text-red-500 text-sm font-medium animate-pulse mb-4">{error}</p>}
         <button 
           onClick={() => { setSelectedFriend(null); setMode(null); }}
-          className="text-slate-400 text-sm hover:text-slate-600 underline decoration-slate-300 underline-offset-4"
+          className="text-skin-muted text-sm hover:text-skin-text underline decoration-skin-muted/30 underline-offset-4"
         >
           Cancel
         </button>
@@ -276,9 +276,9 @@ export default function ProfileSelector({ friends, onSelect }: Props) {
   // RENDER: PROFILE SELECTOR
   return (
     <div className="flex flex-col items-center justify-center min-h-[50vh] animate-in fade-in zoom-in duration-300">
-      <h1 className="text-3xl font-black text-slate-800 mb-8 tracking-tight">Who's planning?</h1>
+      <h1 className="text-3xl font-black text-skin-text mb-8 tracking-tight">Who's planning?</h1>
       {loading ? (
-         <div className="text-slate-400">Loading profiles...</div>
+         <div className="text-skin-muted">Loading profiles...</div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
           {friends.map((friend, index) => (
@@ -288,11 +288,8 @@ export default function ProfileSelector({ friends, onSelect }: Props) {
               className="group flex flex-col items-center gap-3 transition-transform hover:scale-105 active:scale-95"
             >
               <div className={clsx(
-                "w-24 h-24 rounded-2xl shadow-md flex items-center justify-center text-4xl font-bold text-white mb-1 relative overflow-hidden",
-                // Only apply colorful background if NO avatar
-                // !userAvatars[friend] && AVATAR_COLORS[index % AVATAR_COLORS.length], 
-                // "group-hover:ring-4 ring-slate-200 transition-all bg-white"
-                userAvatars[friend] ? "bg-white" : AVATAR_COLORS[index % AVATAR_COLORS.length]
+                "w-24 h-24 rounded-2xl shadow-md flex items-center justify-center text-4xl font-bold text-skin-primary-fg mb-1 relative overflow-hidden",
+                userAvatars[friend] ? "bg-skin-card" : AVATAR_COLORS[index % AVATAR_COLORS.length]
               )}>
                 {userAvatars[friend] ? (
                   <img src={userAvatars[friend]} alt={friend} className="w-full h-full object-cover" />
@@ -300,7 +297,7 @@ export default function ProfileSelector({ friends, onSelect }: Props) {
                   friend[0].toUpperCase()
                 )}
               </div>
-              <span className="text-lg font-medium text-slate-600 group-hover:text-slate-900">
+              <span className="text-lg font-medium text-skin-text group-hover:text-skin-primary">
                 {friend}
               </span>
             </button>

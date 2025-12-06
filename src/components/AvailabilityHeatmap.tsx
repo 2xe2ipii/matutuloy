@@ -59,7 +59,7 @@ export default function AvailabilityHeatmap({
   };
 
   const getIntensityClass = (count: number) => {
-    if (count === 0) return "bg-gray-50 text-gray-400 hover:bg-gray-100";
+    if (count === 0) return "bg-skin-base text-skin-muted hover:bg-skin-card";
     const percentage = count / totalUsers;
     if (percentage <= 0.25) return "bg-emerald-200 text-emerald-800";
     if (percentage <= 0.50) return "bg-emerald-400 text-white";
@@ -93,11 +93,11 @@ export default function AvailabilityHeatmap({
   };
 
   return (
-    <div className="w-full p-6 bg-white rounded-2xl shadow-xl border border-gray-100">
+    <div className="w-full p-6 bg-skin-card rounded-2xl shadow-xl border border-skin-muted/20">
       <div className="flex justify-between items-end mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">{format(currentMonth, 'MMMM yyyy')}</h2>
+        <h2 className="text-2xl font-bold text-skin-text">{format(currentMonth, 'MMMM yyyy')}</h2>
         <div className="flex flex-col items-end">
-             <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">Live Sync</span>
+             <span className="text-xs font-medium text-skin-muted uppercase tracking-wider">Live Sync</span>
              <span className="text-[10px] text-green-600 flex items-center gap-1">
                 <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"/> Online
              </span>
@@ -106,7 +106,7 @@ export default function AvailabilityHeatmap({
 
       <div className="grid grid-cols-7 mb-3 text-center">
         {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day) => (
-          <div key={day} className="text-xs font-bold text-gray-400">{day}</div>
+          <div key={day} className="text-xs font-bold text-skin-muted">{day}</div>
         ))}
       </div>
 
@@ -134,8 +134,8 @@ export default function AvailabilityHeatmap({
               className={cn(
                 "h-12 w-full rounded-xl flex flex-col items-center justify-center transition-all duration-200 relative select-none touch-manipulation",
                 getIntensityClass(count),
-                isSelectedByMe && "ring-2 ring-offset-2 ring-blue-500",
-                isTodayDate && !count && "border-2 border-blue-200"
+                isSelectedByMe && "ring-2 ring-offset-2 ring-skin-primary",
+                isTodayDate && !count && "border-2 border-skin-primary/30"
               )}
             >
               <span className="text-sm font-medium leading-none">{format(date, 'd')}</span>
@@ -152,7 +152,7 @@ export default function AvailabilityHeatmap({
         })}
       </div>
 
-      <p className="text-[10px] text-gray-300 text-center mt-6">
+      <p className="text-[10px] text-skin-muted/50 text-center mt-6">
         Tip: Long press (mobile) or Right click (desktop) a date to see who is free.
       </p>
     </div>

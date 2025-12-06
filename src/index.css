@@ -1,1 +1,94 @@
 @import "tailwindcss";
+
+@theme {
+  --color-skin-base: var(--skin-base);
+  --color-skin-card: var(--skin-card);
+  --color-skin-text: var(--skin-text);
+  --color-skin-muted: var(--skin-muted);
+  --color-skin-primary: var(--skin-primary);
+  --color-skin-primary-fg: var(--skin-primary-fg);
+  
+  --animate-fade-in: fade-in 0.3s ease-out;
+  --animate-zoom-in: zoom-in 0.3s ease-out;
+
+  @keyframes fade-in {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+  @keyframes zoom-in {
+    0% { opacity: 0; transform: scale(0.95); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+}
+
+@layer base {
+  :root {
+    /* DEFAULT (LIGHT) */
+    --skin-base: #f8fafc; /* slate-50 */
+    --skin-card: #ffffff; /* white */
+    --skin-text: #1e293b; /* slate-800 */
+    --skin-muted: #94a3b8; /* slate-400 */
+    --skin-primary: #3b82f6; /* blue-500 */
+    --skin-primary-fg: #ffffff;
+  }
+
+  [data-theme='dark'] {
+    --skin-base: #0f172a; /* slate-900 */
+    --skin-card: #1e293b; /* slate-800 */
+    --skin-text: #f1f5f9; /* slate-100 */
+    --skin-muted: #94a3b8; /* slate-400 */
+    --skin-primary: #60a5fa; /* blue-400 */
+    --skin-primary-fg: #0f172a;
+  }
+
+  [data-theme='christmas'] {
+    --skin-base: #fef2f2; /* red-50 */
+    --skin-card: #ffffff;
+    --skin-text: #166534; /* green-800 */
+    --skin-muted: #b91c1c; /* red-700 */
+    --skin-primary: #dc2626; /* red-600 */
+    --skin-primary-fg: #ffffff;
+  }
+
+  [data-theme='halloween'] {
+    --skin-base: #27272a; /* zinc-800 */
+    --skin-card: #3f3f46; /* zinc-700 */
+    --skin-text: #fb923c; /* orange-400 */
+    --skin-muted: #a78bfa; /* violet-400 */
+    --skin-primary: #ea580c; /* orange-600 */
+    --skin-primary-fg: #ffffff;
+  }
+
+  [data-theme='fiesta'] {
+    --skin-base: #fffbeb; /* amber-50 */
+    --skin-card: #ffffff;
+    --skin-text: #be185d; /* pink-700 */
+    --skin-muted: #d97706; /* amber-600 */
+    --skin-primary: #10b981; /* emerald-500 */
+    --skin-primary-fg: #ffffff;
+  }
+
+  [data-theme='beach'] {
+    --skin-base: #fff7ed; /* orange-50 (sand) */
+    --skin-card: #ffffff;
+    --skin-text: #0c4a6e; /* sky-900 */
+    --skin-muted: #0ea5e9; /* sky-500 */
+    --skin-primary: #0ea5e9; /* sky-500 */
+    --skin-primary-fg: #ffffff;
+  }
+  
+  [data-theme='lofi'] {
+    --skin-base: #2e1065; /* violet-950 */
+    --skin-card: #4c1d95; /* violet-900 */
+    --skin-text: #e0e7ff; /* indigo-100 */
+    --skin-muted: #a5b4fc; /* indigo-300 */
+    --skin-primary: #f472b6; /* pink-400 */
+    --skin-primary-fg: #2e1065;
+  }
+
+  body {
+    background-color: var(--skin-base);
+    color: var(--skin-text);
+    transition: background-color 0.5s ease, color 0.5s ease;
+  }
+}
