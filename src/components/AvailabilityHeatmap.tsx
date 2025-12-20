@@ -17,7 +17,6 @@ interface Props {
   currentMonth?: Date;
   currentUser: string;
   friends: string[];
-  // New Prop to communicate back to App
   onDateInteract: (date: Date, names: string[]) => void;
 }
 
@@ -71,7 +70,6 @@ export default function AvailabilityHeatmap({
 
   // INTERACTION HANDLERS
   const handlePointerDown = (date: Date, names: string[]) => (e: React.PointerEvent) => {
-    // If mobile (touch), wait for long press
     if (e.pointerType !== 'mouse') {
       longPressTimeoutRef.current = window.setTimeout(() => {
         onDateInteract(date, names);
@@ -86,14 +84,14 @@ export default function AvailabilityHeatmap({
     }
   };
 
-  // For Desktop: Right click context menu to show details
   const handleContextMenu = (e: React.MouseEvent, date: Date, names: string[]) => {
     e.preventDefault();
     onDateInteract(date, names);
   };
 
   return (
-    <div className="w-full p-6 bg-skin-card rounded-2xl shadow-xl border border-skin-muted/20 mb-20">
+    // REMOVED 'mb-20' from the class list below
+    <div className="w-full p-6 bg-skin-card rounded-2xl shadow-xl border border-skin-muted/20">
       <div className="flex justify-between items-end mb-6">
         <h2 className="text-2xl font-bold text-skin-text">{format(currentMonth, 'MMMM yyyy')}</h2>
         <div className="flex flex-col items-end">
