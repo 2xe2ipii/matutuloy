@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { ref, push, onValue, update } from 'firebase/database';
+import { ref, push, onValue, update, remove } from 'firebase/database';
 import { db } from '../firebase';
 import { format } from 'date-fns';
 import { clsx } from 'clsx';
@@ -21,6 +21,12 @@ const ImageIcon = ({ className }: { className?: string }) => (
 const ArrowRightIcon = ({ className }: { className?: string }) => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
 );
+const PencilIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+);
+const TrashIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+);
 
 interface Props {
   currentUser: string;
@@ -29,8 +35,11 @@ interface Props {
 
 export default function PlanningDashboard({ currentUser, friends }: Props) {
   const [plans, setPlans] = useState<any[]>([]);
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
+  
+  // Edit Mode State
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   // Form State
   const [newPlanName, setNewPlanName] = useState('');
@@ -60,12 +69,67 @@ export default function PlanningDashboard({ currentUser, friends }: Props) {
     return () => unsubscribe();
   }, [currentUser]);
 
-  const toggleInvite = (friendName: string) => {
-    if (selectedInvites.includes(friendName)) {
-      setSelectedInvites(selectedInvites.filter(name => name !== friendName));
-    } else {
-      setSelectedInvites([...selectedInvites, friendName]);
+  const resetForm = () => {
+    setShowModal(false);
+    setEditingId(null);
+    setNewPlanName('');
+    setNewPlanLocation('');
+    setNewPlanDateStart('');
+    setNewPlanDateEnd('');
+    setSelectedInvites([]);
+    setPlanPhoto(null);
+  };
+
+  const handleOpenCreate = () => {
+    resetForm();
+    setShowModal(true);
+  };
+
+  const handleOpenEdit = (e: React.MouseEvent, plan: any) => {
+    e.stopPropagation();
+    setEditingId(plan.id);
+    setNewPlanName(plan.name);
+    setNewPlanLocation(plan.location);
+    setNewPlanDateStart(plan.startDate);
+    setNewPlanDateEnd(plan.endDate);
+    setSelectedInvites(plan.invites || []);
+    setPlanPhoto(plan.photo || null);
+    setShowModal(true);
+  };
+
+  const handleDeletePlan = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    if (window.confirm("Are you sure you want to delete this plan? This cannot be undone.")) {
+      remove(ref(db, `plans/${id}`));
     }
+  };
+
+  const handleSavePlan = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const payload = {
+      name: newPlanName,
+      location: newPlanLocation,
+      startDate: newPlanDateStart,
+      endDate: newPlanDateEnd,
+      invites: selectedInvites,
+      photo: planPhoto 
+    };
+
+    if (editingId) {
+      // Update existing
+      update(ref(db, `plans/${editingId}`), payload);
+    } else {
+      // Create new
+      push(ref(db, 'plans'), {
+        ...payload,
+        admin: currentUser,
+        createdAt: Date.now(),
+        members: [currentUser],
+      });
+    }
+    
+    resetForm();
   };
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -78,32 +142,12 @@ export default function PlanningDashboard({ currentUser, friends }: Props) {
     }
   };
 
-  const handleCreatePlan = (e: React.FormEvent) => {
-    e.preventDefault();
-    const newPlan = {
-      name: newPlanName,
-      location: newPlanLocation,
-      startDate: newPlanDateStart,
-      endDate: newPlanDateEnd,
-      admin: currentUser,
-      createdAt: Date.now(),
-      members: [currentUser],
-      invites: selectedInvites,
-      photo: planPhoto 
-    };
-    
-    push(ref(db, 'plans'), newPlan);
-    resetForm();
-  };
-
-  const resetForm = () => {
-    setShowCreateModal(false);
-    setNewPlanName('');
-    setNewPlanLocation('');
-    setNewPlanDateStart('');
-    setNewPlanDateEnd('');
-    setSelectedInvites([]);
-    setPlanPhoto(null);
+  const toggleInvite = (friendName: string) => {
+    if (selectedInvites.includes(friendName)) {
+      setSelectedInvites(selectedInvites.filter(name => name !== friendName));
+    } else {
+      setSelectedInvites([...selectedInvites, friendName]);
+    }
   };
 
   const handleJoin = (e: React.MouseEvent, planId: string, currentMembers: string[] = [], currentInvites: string[] = []) => {
@@ -128,24 +172,23 @@ export default function PlanningDashboard({ currentUser, friends }: Props) {
   return (
     <div className="w-full max-w-5xl mx-auto animate-in fade-in duration-300">
       
-      {/* MINIMALIST HEADER */}
+      {/* HEADER */}
       <div className="flex justify-between items-end mb-8 border-b border-skin-muted/10 pb-4">
         <div>
            <h1 className="text-4xl font-black text-skin-text tracking-tight mb-1">Trips</h1>
            <p className="text-skin-muted text-sm font-medium">Coordinate your next getaway.</p>
         </div>
         
-        {currentUser === 'Drex' && (
-          <button 
-            onClick={() => setShowCreateModal(true)}
-            className="group flex items-center gap-2 px-5 py-2.5 rounded-full border border-skin-text/20 hover:border-skin-text hover:bg-skin-text hover:text-skin-base transition-all duration-300"
-          >
-            <PlusIcon className="w-4 h-4 transition-transform group-hover:rotate-90" /> 
-            <span className="text-sm font-bold">New Trip</span>
-          </button>
-        )}
+        <button 
+          onClick={handleOpenCreate}
+          className="group flex items-center gap-2 px-5 py-2.5 rounded-full border border-skin-text/20 hover:border-skin-text hover:bg-skin-text hover:text-skin-base transition-all duration-300"
+        >
+          <PlusIcon className="w-4 h-4 transition-transform group-hover:rotate-90" /> 
+          <span className="text-sm font-bold">New Trip</span>
+        </button>
       </div>
 
+      {/* PLANS GRID */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {plans.length === 0 ? (
            <div className="col-span-full text-center py-20 text-skin-muted border border-dashed border-skin-muted/20 rounded-2xl bg-skin-card/50">
@@ -160,7 +203,7 @@ export default function PlanningDashboard({ currentUser, friends }: Props) {
                  key={plan.id} 
                  onClick={() => !isInvited && setSelectedPlanId(plan.id)}
                  className={clsx(
-                   "bg-skin-card rounded-2xl shadow-sm border border-skin-muted/20 overflow-hidden group transition-all flex flex-col cursor-pointer hover:shadow-xl hover:-translate-y-1 duration-300",
+                   "bg-skin-card rounded-2xl shadow-sm border border-skin-muted/20 overflow-hidden group transition-all flex flex-col cursor-pointer hover:shadow-xl hover:-translate-y-1 duration-300 relative",
                    isInvited && "opacity-90"
                  )}
                >
@@ -174,10 +217,27 @@ export default function PlanningDashboard({ currentUser, friends }: Props) {
                        </div>
                      )}
                      
-                     {/* Cleaner Status Badge */}
                      <div className="absolute top-4 left-4 bg-skin-card/90 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold text-skin-text border border-skin-muted/10 uppercase tracking-widest shadow-sm">
                         {plan.admin === currentUser ? 'Admin' : 'Member'}
                      </div>
+
+                     {/* EDIT / DELETE ACTIONS (Visible on Hover) */}
+                     {!isInvited && (
+                       <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button 
+                            onClick={(e) => handleOpenEdit(e, plan)}
+                            className="p-2 bg-skin-card/90 backdrop-blur-md rounded-full text-skin-text hover:text-skin-primary shadow-sm hover:scale-110 transition-transform"
+                          >
+                            <PencilIcon className="w-4 h-4" />
+                          </button>
+                          <button 
+                            onClick={(e) => handleDeletePlan(e, plan.id)}
+                            className="p-2 bg-skin-card/90 backdrop-blur-md rounded-full text-skin-text hover:text-red-500 shadow-sm hover:scale-110 transition-transform"
+                          >
+                            <TrashIcon className="w-4 h-4" />
+                          </button>
+                       </div>
+                     )}
                   </div>
                   
                   <div className="p-5 flex-1 flex flex-col">
@@ -230,12 +290,14 @@ export default function PlanningDashboard({ currentUser, friends }: Props) {
         )}
       </div>
 
-      {/* CREATE MODAL (Kept mostly same but cleaner inputs) */}
-      {showCreateModal && (
+      {/* MODAL (Create/Edit) */}
+      {showModal && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
            <div className="bg-skin-card w-full max-w-lg rounded-3xl p-6 shadow-2xl animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto border border-skin-muted/10">
-              <h2 className="text-2xl font-black text-skin-text mb-6">New Trip</h2>
-              <form onSubmit={handleCreatePlan} className="space-y-5">
+              <h2 className="text-2xl font-black text-skin-text mb-6">
+                {editingId ? 'Edit Trip' : 'New Trip'}
+              </h2>
+              <form onSubmit={handleSavePlan} className="space-y-5">
                  
                  {/* Photo Upload Area */}
                  <div 
@@ -334,7 +396,7 @@ export default function PlanningDashboard({ currentUser, friends }: Props) {
                       type="submit" 
                       className="flex-1 py-3 bg-skin-text text-skin-base font-bold rounded-xl shadow-lg hover:opacity-90 transition-all text-sm"
                     >
-                      Create Trip
+                      {editingId ? 'Save Changes' : 'Create Trip'}
                     </button>
                  </div>
               </form>

@@ -1,13 +1,17 @@
 import { useState, useEffect } from 'react';
-import { ref, onValue, push, remove } from 'firebase/database';
+import { ref, onValue, push, update, remove } from 'firebase/database';
 import { db } from '../firebase';
 import { format } from 'date-fns';
 import { clsx } from 'clsx';
 import PlanFinances from './PlanFinances';
+import PlanPolls from './PlanPolls';
 
 // --- ICONS ---
 const TrashIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+);
+const PencilIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
 );
 const MapIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" x2="9" y1="3" y2="18"/><line x1="15" x2="15" y1="6" y2="21"/></svg>
@@ -38,7 +42,9 @@ export default function PlanDetails({ planId, currentUser, onBack }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>('itinerary');
 
   const [activities, setActivities] = useState<any[]>([]);
-  const [showAddActivity, setShowAddActivity] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [editingActivityId, setEditingActivityId] = useState<string | null>(null);
+  
   const [newActivity, setNewActivity] = useState({ time: '', title: '', location: '', notes: '' });
 
   useEffect(() => {
@@ -64,10 +70,31 @@ export default function PlanDetails({ planId, currentUser, onBack }: Props) {
     return () => unsubscribe();
   }, [planId]);
 
-  const handleAddActivity = (e: React.FormEvent) => {
+  const handleOpenAdd = () => {
+    setEditingActivityId(null);
+    setNewActivity({ time: '', title: '', location: '', notes: '' });
+    setShowAddModal(true);
+  };
+
+  const handleOpenEdit = (activity: any) => {
+    setEditingActivityId(activity.id);
+    setNewActivity({ 
+      time: activity.time, 
+      title: activity.title, 
+      location: activity.location, 
+      notes: activity.notes || '' 
+    });
+    setShowAddModal(true);
+  };
+
+  const handleSaveActivity = (e: React.FormEvent) => {
     e.preventDefault();
-    push(ref(db, `plans/${planId}/itinerary`), newActivity);
-    setShowAddActivity(false);
+    if (editingActivityId) {
+      update(ref(db, `plans/${planId}/itinerary/${editingActivityId}`), newActivity);
+    } else {
+      push(ref(db, `plans/${planId}/itinerary`), newActivity);
+    }
+    setShowAddModal(false);
     setNewActivity({ time: '', title: '', location: '', notes: '' });
   };
 
@@ -78,8 +105,6 @@ export default function PlanDetails({ planId, currentUser, onBack }: Props) {
   };
 
   if (!plan) return <div className="p-8 text-center text-skin-muted text-sm">Loading details...</div>;
-
-  const isAdmin = plan.admin === currentUser;
 
   const TABS = [
     { id: 'itinerary', label: 'Itinerary', icon: <MapIcon className="w-4 h-4"/> },
@@ -147,14 +172,12 @@ export default function PlanDetails({ planId, currentUser, onBack }: Props) {
                  <ClockIcon className="w-5 h-5 text-skin-primary" />
                  Activity Timeline
                </h3>
-               {isAdmin && (
-                 <button 
-                   onClick={() => setShowAddActivity(true)}
-                   className="text-xs font-bold bg-skin-base px-3 py-1.5 rounded-md border border-skin-muted/20 hover:border-skin-primary hover:text-skin-primary transition-all"
-                 >
-                   + Add Activity
-                 </button>
-               )}
+               <button 
+                 onClick={handleOpenAdd}
+                 className="text-xs font-bold bg-skin-base px-3 py-1.5 rounded-md border border-skin-muted/20 hover:border-skin-primary hover:text-skin-primary transition-all"
+               >
+                 + Add Activity
+               </button>
             </div>
 
             <div className="relative pl-2 space-y-8">
@@ -183,15 +206,20 @@ export default function PlanDetails({ planId, currentUser, onBack }: Props) {
                           )}
                         </div>
                         
-                        {isAdmin && (
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button 
+                            onClick={() => handleOpenEdit(activity)}
+                            className="text-skin-muted hover:text-skin-primary p-2 rounded-full hover:bg-skin-base transition-colors"
+                          >
+                            <PencilIcon className="w-4 h-4" />
+                          </button>
                           <button 
                             onClick={() => handleDeleteActivity(activity.id)}
-                            className="text-skin-muted hover:text-red-500 p-2 rounded-full hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
-                            title="Delete"
+                            className="text-skin-muted hover:text-red-500 p-2 rounded-full hover:bg-red-50 transition-colors"
                           >
                             <TrashIcon className="w-4 h-4" />
                           </button>
-                        )}
+                        </div>
                       </div>
                    </div>
                  ))
@@ -209,6 +237,13 @@ export default function PlanDetails({ planId, currentUser, onBack }: Props) {
           />
         )}
 
+        {activeTab === 'polls' && (
+          <PlanPolls 
+            planId={planId} 
+            currentUser={currentUser} 
+          />
+        )}
+
         {/* --- OTHER TABS (Placeholders) --- */}
         {(activeTab === 'polls' || activeTab === 'gallery') && (
           <div className="flex flex-col items-center justify-center h-64 text-skin-muted">
@@ -221,12 +256,14 @@ export default function PlanDetails({ planId, currentUser, onBack }: Props) {
 
       </div>
 
-      {/* MODAL: ADD ACTIVITY */}
-      {showAddActivity && (
+      {/* MODAL: ADD/EDIT ACTIVITY */}
+      {showAddModal && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
            <div className="bg-skin-card w-full max-w-sm rounded-2xl p-6 shadow-2xl animate-in zoom-in-95 duration-200">
-              <h3 className="font-bold text-lg text-skin-text mb-4">Add New Activity</h3>
-              <form onSubmit={handleAddActivity} className="space-y-4">
+              <h3 className="font-bold text-lg text-skin-text mb-4">
+                {editingActivityId ? 'Edit Activity' : 'Add New Activity'}
+              </h3>
+              <form onSubmit={handleSaveActivity} className="space-y-4">
                  <div>
                     <label className="text-[10px] font-bold text-skin-muted uppercase mb-1 block">Time</label>
                     <input 
@@ -267,8 +304,10 @@ export default function PlanDetails({ planId, currentUser, onBack }: Props) {
                     />
                  </div>
                  <div className="flex gap-2 pt-2">
-                    <button type="button" onClick={() => setShowAddActivity(false)} className="flex-1 py-2 text-sm text-skin-muted font-bold hover:bg-skin-base rounded-lg transition-colors">Cancel</button>
-                    <button type="submit" className="flex-1 py-2 text-sm bg-skin-text text-skin-base font-bold rounded-lg shadow-sm hover:opacity-90">Add</button>
+                    <button type="button" onClick={() => setShowAddModal(false)} className="flex-1 py-2 text-sm text-skin-muted font-bold hover:bg-skin-base rounded-lg transition-colors">Cancel</button>
+                    <button type="submit" className="flex-1 py-2 text-sm bg-skin-text text-skin-base font-bold rounded-lg shadow-sm hover:opacity-90">
+                      {editingActivityId ? 'Save Changes' : 'Add'}
+                    </button>
                  </div>
               </form>
            </div>
