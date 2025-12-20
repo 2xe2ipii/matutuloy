@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { 
-  format, eachDayOfInterval, startOfMonth, endOfMonth, getDay, isToday 
+  format, eachDayOfInterval, startOfMonth, endOfMonth, getDay, isToday,
+  addMonths, subMonths, isBefore, startOfDay, isSameMonth
 } from 'date-fns';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -26,14 +27,21 @@ export default function AvailabilityHeatmap({
   friends,
   onDateInteract
 }: Props) {
-  const totalUsers = friends.length;
-  const daysInMonth = eachDayOfInterval({
-    start: startOfMonth(currentMonth),
-    end: endOfMonth(currentMonth),
-  });
-
+  const [viewDate, setViewDate] = useState(currentMonth);
   const [availability, setAvailability] = useState<AvailabilityMap>({});
   const longPressTimeoutRef = useRef<number | null>(null);
+
+  const totalUsers = friends.length;
+  const today = startOfDay(new Date());
+  
+  const minDate = startOfMonth(new Date()); 
+  const canGoBack = !isSameMonth(viewDate, minDate);
+
+  const daysInMonth = eachDayOfInterval({
+    start: startOfMonth(viewDate),
+    end: endOfMonth(viewDate),
+  });
+  const startingDayIndex = getDay(startOfMonth(viewDate));
 
   useEffect(() => {
     const availabilityRef = ref(db, 'availability');
@@ -57,16 +65,31 @@ export default function AvailabilityHeatmap({
     }
   };
 
-  const getIntensityClass = (count: number) => {
-    if (count === 0) return "bg-skin-base text-skin-muted hover:bg-skin-card";
+  const getIntensityClass = (count: number, isPast: boolean) => {
+    if (isPast) return "bg-skin-base/50 text-skin-muted/20 cursor-default opacity-50"; 
+    
+    if (count === 0) return "bg-skin-base text-skin-muted hover:bg-skin-card border border-skin-muted/20";
+    
     const percentage = count / totalUsers;
-    if (percentage <= 0.25) return "bg-emerald-200 text-emerald-800";
-    if (percentage <= 0.50) return "bg-emerald-400 text-white";
-    if (percentage <= 0.75) return "bg-emerald-600 text-white";
-    return "bg-emerald-900 text-white font-bold ring-2 ring-emerald-400 shadow-lg scale-105 z-10";
+    if (percentage <= 0.25) return "bg-emerald-200 text-emerald-900 border-emerald-300";
+    if (percentage <= 0.50) return "bg-emerald-400 text-white border-emerald-500";
+    if (percentage <= 0.75) return "bg-emerald-600 text-white border-emerald-700";
+    return "bg-emerald-800 text-white font-bold border-emerald-900 shadow-md";
   };
 
-  const startingDayIndex = getDay(startOfMonth(currentMonth));
+  // NEW: Helper to ensure dots are always visible based on the background
+  const getDotColorClass = (count: number) => {
+    const percentage = count / totalUsers;
+    // If background is light (low count), use DARK dots
+    if (percentage <= 0.25) return "bg-emerald-800"; 
+    // If background is dark (high count), use WHITE dots
+    return "bg-white";
+  };
+
+  const nextMonth = () => setViewDate(addMonths(viewDate, 1));
+  const prevMonth = () => {
+    if (canGoBack) setViewDate(subMonths(viewDate, 1));
+  };
 
   // INTERACTION HANDLERS
   const handlePointerDown = (date: Date, names: string[]) => (e: React.PointerEvent) => {
@@ -90,25 +113,44 @@ export default function AvailabilityHeatmap({
   };
 
   return (
-    // REMOVED 'mb-20' from the class list below
     <div className="w-full p-6 bg-skin-card rounded-2xl shadow-xl border border-skin-muted/20">
-      <div className="flex justify-between items-end mb-6">
-        <h2 className="text-2xl font-bold text-skin-text">{format(currentMonth, 'MMMM yyyy')}</h2>
-        <div className="flex flex-col items-end">
-             <span className="text-xs font-medium text-skin-muted uppercase tracking-wider">Live Sync</span>
-             <span className="text-[10px] text-green-600 flex items-center gap-1">
-                <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"/> Online
-             </span>
-        </div>
+      
+      {/* HEADER */}
+      <div className="flex justify-between items-center mb-6 select-none">
+        <button 
+          onClick={prevMonth}
+          disabled={!canGoBack}
+          className={cn(
+            "p-2 rounded-full transition-colors",
+            canGoBack 
+              ? "hover:bg-skin-base text-skin-text cursor-pointer" 
+              : "text-skin-muted/20 cursor-not-allowed"
+          )}
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        </button>
+        
+        <h2 className="text-xl md:text-2xl font-black text-skin-text tracking-tight">
+          {format(viewDate, 'MMMM yyyy')}
+        </h2>
+
+        <button 
+          onClick={nextMonth}
+          className="p-2 hover:bg-skin-base rounded-full text-skin-text transition-colors"
+        >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+        </button>
       </div>
 
-      <div className="grid grid-cols-7 mb-3 text-center">
+      {/* DAYS HEADER */}
+      <div className="grid grid-cols-7 mb-2 text-center select-none">
         {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day) => (
-          <div key={day} className="text-xs font-bold text-skin-muted">{day}</div>
+          <div key={day} className="text-[10px] font-black text-skin-muted uppercase tracking-widest">{day}</div>
         ))}
       </div>
 
-      <div className="grid grid-cols-7 gap-2">
+      {/* CALENDAR GRID */}
+      <div className="grid grid-cols-7 gap-1">
         {Array.from({ length: startingDayIndex }).map((_, i) => (
           <div key={`empty-${i}`} />
         ))}
@@ -120,29 +162,48 @@ export default function AvailabilityHeatmap({
           const count = attendees.length;
           const isSelectedByMe = !!dayData[currentUser];
           const isTodayDate = isToday(date);
+          const isPast = isBefore(date, today);
 
           return (
             <button
               key={dateKey}
-              onClick={() => toggleAvailability(date)}
-              onPointerDown={handlePointerDown(date, attendees)}
-              onPointerUp={handlePointerUp}
-              onPointerLeave={handlePointerUp}
-              onContextMenu={(e) => handleContextMenu(e, date, attendees)}
+              disabled={isPast}
+              onClick={() => !isPast && toggleAvailability(date)}
+              onPointerDown={!isPast ? handlePointerDown(date, attendees) : undefined}
+              onPointerUp={!isPast ? handlePointerUp : undefined}
+              onPointerLeave={!isPast ? handlePointerUp : undefined}
+              onContextMenu={(e) => !isPast && handleContextMenu(e, date, attendees)}
               className={cn(
-                "h-12 w-full rounded-xl flex flex-col items-center justify-center transition-all duration-200 relative select-none touch-manipulation",
-                getIntensityClass(count),
-                isSelectedByMe && "ring-2 ring-offset-2 ring-skin-primary",
-                isTodayDate && !count && "border-2 border-skin-primary/30"
+                "h-14 w-full rounded-lg flex flex-col items-center justify-start pt-1.5 transition-all duration-100 relative select-none touch-manipulation border",
+                getIntensityClass(count, isPast),
+                isSelectedByMe && !isPast && "border-2 border-skin-primary", 
+                isTodayDate && !count && "border-2 border-dashed border-skin-muted/50"
               )}
             >
-              <span className="text-sm font-medium leading-none">{format(date, 'd')}</span>
-              {count > 0 && (
-                <div className="flex gap-0.5 mt-1">
-                  {attendees.slice(0, 3).map((_, i) => (
-                     <div key={i} className="w-1 h-1 rounded-full bg-white/60" />
+              <span className="text-xs font-bold leading-none z-10">{format(date, 'd')}</span>
+              
+              {/* Checkmark Badge */}
+              {isSelectedByMe && !isPast && (
+                <div className="absolute top-0.5 right-0.5 text-skin-primary drop-shadow-sm">
+                   <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                   </svg>
+                </div>
+              )}
+
+              {/* DOT GRID */}
+              {count > 0 && !isPast && (
+                <div className="grid grid-cols-3 gap-[2px] mt-1.5 p-0.5">
+                  {attendees.map((_, i) => (
+                    <div 
+                      key={i} 
+                      className={cn(
+                        "w-[3px] h-[3px] rounded-full",
+                        // FIXED: Use the helper to determine contrast color
+                        getDotColorClass(count)
+                      )} 
+                    />
                   ))}
-                  {count > 3 && <div className="w-1 h-1 rounded-full bg-white/60" />}
                 </div>
               )}
             </button>
