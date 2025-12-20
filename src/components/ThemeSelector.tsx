@@ -16,7 +16,6 @@ export default function ThemeSelector() {
   const [currentTheme, setCurrentTheme] = useState('light');
 
   useEffect(() => {
-    // Read from local storage on load
     const saved = localStorage.getItem('app-theme') || 'light';
     setCurrentTheme(saved);
     document.documentElement.setAttribute('data-theme', saved);
@@ -30,12 +29,16 @@ export default function ThemeSelector() {
   };
 
   return (
-    <div className="fixed bottom-6 left-6 z-50 flex flex-col-reverse items-start gap-3 font-sans">
+    // FIX 1: Add 'pointer-events-none' here. 
+    // This ensures the invisible wrapper area lets clicks pass through to the calendar.
+    <div className="fixed bottom-6 left-6 z-50 flex flex-col-reverse items-start gap-3 font-sans pointer-events-none">
       
       {/* Main Toggle Button */}
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="w-12 h-12 rounded-full bg-skin-primary text-skin-primary-fg shadow-xl flex items-center justify-center text-xl hover:scale-110 active:scale-95 transition-transform border border-white/20"
+        // FIX 2: Add 'pointer-events-auto' here.
+        // This re-enables clicking specifically on the button.
+        className="w-12 h-12 rounded-full bg-skin-primary text-skin-primary-fg shadow-xl flex items-center justify-center text-xl hover:scale-110 active:scale-95 transition-transform border border-white/20 pointer-events-auto"
       >
         🎨
       </button>
@@ -43,7 +46,10 @@ export default function ThemeSelector() {
       {/* Theme Menu */}
       <div className={clsx(
         "flex flex-col gap-2 transition-all duration-300 origin-bottom-left",
-        isOpen ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-50 translate-y-10 pointer-events-none"
+        // FIX 3: Add 'pointer-events-auto' ONLY when open.
+        isOpen 
+          ? "opacity-100 scale-100 translate-y-0 pointer-events-auto" 
+          : "opacity-0 scale-50 translate-y-10 pointer-events-none"
       )}>
         <div className="bg-skin-card border border-skin-muted/20 p-2 rounded-2xl shadow-2xl flex flex-col gap-1 w-32 max-h-[60vh] overflow-y-auto">
           {THEMES.map((theme) => (

@@ -93,7 +93,7 @@ export default function AvailabilityHeatmap({
   };
 
   return (
-    <div className="w-full p-6 bg-skin-card rounded-2xl shadow-xl border border-skin-muted/20">
+    <div className="w-full p-6 bg-skin-card rounded-2xl shadow-xl border border-skin-muted/20 mb-20">
       <div className="flex justify-between items-end mb-6">
         <h2 className="text-2xl font-bold text-skin-text">{format(currentMonth, 'MMMM yyyy')}</h2>
         <div className="flex flex-col items-end">
