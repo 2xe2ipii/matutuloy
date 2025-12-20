@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { clsx } from 'clsx';
 
 const THEMES = [
@@ -14,11 +14,21 @@ const THEMES = [
 export default function ThemeSelector() {
   const [isOpen, setIsOpen] = useState(false);
   const [currentTheme, setCurrentTheme] = useState('light');
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem('app-theme') || 'light';
     setCurrentTheme(saved);
     document.documentElement.setAttribute('data-theme', saved);
+
+    // Close menu when clicking outside
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const changeTheme = (themeId: string) => {
@@ -29,35 +39,30 @@ export default function ThemeSelector() {
   };
 
   return (
-    // FIX 1: Add 'pointer-events-none' here. 
-    // This ensures the invisible wrapper area lets clicks pass through to the calendar.
-    <div className="fixed bottom-6 left-6 z-50 flex flex-col-reverse items-start gap-3 font-sans pointer-events-none">
-      
-      {/* Main Toggle Button */}
+    <div className="relative" ref={menuRef}>
+      {/* Toggle Button - Now sized w-10 h-10 to match avatar */}
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        // FIX 2: Add 'pointer-events-auto' here.
-        // This re-enables clicking specifically on the button.
-        className="w-12 h-12 rounded-full bg-skin-primary text-skin-primary-fg shadow-xl flex items-center justify-center text-xl hover:scale-110 active:scale-95 transition-transform border border-white/20 pointer-events-auto"
+        className="w-10 h-10 rounded-full bg-skin-card text-skin-text shadow-sm border border-skin-muted/20 flex items-center justify-center text-lg hover:bg-skin-base active:scale-95 transition-all"
+        title="Change Theme"
       >
         🎨
       </button>
 
-      {/* Theme Menu */}
+      {/* Dropdown Menu - Aligned to the right */}
       <div className={clsx(
-        "flex flex-col gap-2 transition-all duration-300 origin-bottom-left",
-        // FIX 3: Add 'pointer-events-auto' ONLY when open.
+        "absolute top-full right-0 mt-2 z-50 transition-all duration-200 origin-top-right",
         isOpen 
           ? "opacity-100 scale-100 translate-y-0 pointer-events-auto" 
-          : "opacity-0 scale-50 translate-y-10 pointer-events-none"
+          : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
       )}>
-        <div className="bg-skin-card border border-skin-muted/20 p-2 rounded-2xl shadow-2xl flex flex-col gap-1 w-32 max-h-[60vh] overflow-y-auto">
+        <div className="bg-skin-card border border-skin-muted/20 p-2 rounded-xl shadow-xl flex flex-col gap-1 w-32 max-h-[60vh] overflow-y-auto">
           {THEMES.map((theme) => (
             <button
               key={theme.id}
               onClick={() => changeTheme(theme.id)}
               className={clsx(
-                "flex items-center gap-3 px-3 py-2 rounded-xl transition-all w-full text-left",
+                "flex items-center gap-3 px-3 py-2 rounded-lg transition-all w-full text-left",
                 currentTheme === theme.id 
                   ? "bg-skin-primary text-skin-primary-fg font-bold" 
                   : "hover:bg-skin-base text-skin-text"

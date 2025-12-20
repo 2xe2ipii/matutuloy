@@ -94,42 +94,49 @@ export default function App() {
               </div>
            </div>
            
-           {/* NEW HEADER ACTION: Avatar Dropdown */}
-           <div className="relative">
-             <button 
-               onClick={() => setIsMenuOpen(!isMenuOpen)}
-               className="flex items-center gap-2 focus:outline-none transition-transform active:scale-95"
-             >
-               {userAvatars[currentUser] ? (
-                 <img src={userAvatars[currentUser]} alt="Me" className="w-10 h-10 rounded-full border-2 border-white shadow-md object-cover" />
-               ) : (
-                 <div className="w-10 h-10 rounded-full bg-skin-primary flex items-center justify-center text-skin-primary-fg font-bold shadow-md">
-                   {currentUser[0]}
-                 </div>
-               )}
-             </button>
+           {/* RIGHT SIDE ACTIONS: Theme + Profile */}
+           <div className="flex items-center gap-3">
+             
+             {/* 1. Theme Selector is now here! */}
+             <ThemeSelector />
 
-             {isMenuOpen && (
-               <>
-                 <div className="fixed inset-0 z-10" onClick={() => setIsMenuOpen(false)} />
-                 <div className="absolute right-0 top-12 w-48 bg-skin-card rounded-xl shadow-xl border border-skin-muted/20 z-20 overflow-hidden animate-in fade-in zoom-in duration-100 origin-top-right">
-                   <div className="px-4 py-3 border-b border-skin-muted/10 bg-skin-base/50">
-                      <p className="text-xs text-skin-muted font-medium">Signed in as</p>
-                      <p className="font-bold text-skin-text">{currentUser}</p>
+             {/* 2. Avatar Dropdown */}
+             <div className="relative">
+               <button 
+                 onClick={() => setIsMenuOpen(!isMenuOpen)}
+                 className="flex items-center gap-2 focus:outline-none transition-transform active:scale-95"
+               >
+                 {userAvatars[currentUser] ? (
+                   <img src={userAvatars[currentUser]} alt="Me" className="w-10 h-10 rounded-full border-2 border-white shadow-md object-cover" />
+                 ) : (
+                   <div className="w-10 h-10 rounded-full bg-skin-primary flex items-center justify-center text-skin-primary-fg font-bold shadow-md">
+                     {currentUser[0]}
                    </div>
-                   <label className="block w-full text-left px-4 py-3 text-sm text-skin-text hover:bg-skin-primary hover:text-skin-primary-fg cursor-pointer transition-colors">
-                      Change Icon
-                      <input type="file" onChange={handleFileChange} accept="image/*" className="hidden" />
-                   </label>
-                   <button 
-                     onClick={() => { setCurrentUser(null); setIsMenuOpen(false); }}
-                     className="block w-full text-left px-4 py-3 text-sm text-red-500 hover:bg-red-50/20 font-medium transition-colors"
-                   >
-                     Switch Profile
-                   </button>
-                 </div>
-               </>
-             )}
+                 )}
+               </button>
+
+               {isMenuOpen && (
+                 <>
+                   <div className="fixed inset-0 z-10" onClick={() => setIsMenuOpen(false)} />
+                   <div className="absolute right-0 top-12 w-48 bg-skin-card rounded-xl shadow-xl border border-skin-muted/20 z-20 overflow-hidden animate-in fade-in zoom-in duration-100 origin-top-right">
+                     <div className="px-4 py-3 border-b border-skin-muted/10 bg-skin-base/50">
+                        <p className="text-xs text-skin-muted font-medium">Signed in as</p>
+                        <p className="font-bold text-skin-text">{currentUser}</p>
+                     </div>
+                     <label className="block w-full text-left px-4 py-3 text-sm text-skin-text hover:bg-skin-primary hover:text-skin-primary-fg cursor-pointer transition-colors">
+                        Change Icon
+                        <input type="file" onChange={handleFileChange} accept="image/*" className="hidden" />
+                     </label>
+                     <button 
+                       onClick={() => { setCurrentUser(null); setIsMenuOpen(false); }}
+                       className="block w-full text-left px-4 py-3 text-sm text-red-500 hover:bg-red-50/20 font-medium transition-colors"
+                     >
+                       Switch Profile
+                     </button>
+                   </div>
+                 </>
+               )}
+             </div>
            </div>
         </div>
       )}
