@@ -5,6 +5,7 @@ import { format } from 'date-fns';
 import { clsx } from 'clsx';
 import PlanFinances from './PlanFinances';
 import PlanPolls from './PlanPolls';
+import PlanGallery from './PlanGallery';
 
 // --- ICONS ---
 const TrashIcon = ({ className }: { className?: string }) => (
@@ -244,7 +245,14 @@ export default function PlanDetails({ planId, currentUser, onBack }: Props) {
           />
         )}
 
-        {/* --- OTHER TABS (Placeholders) --- */}
+        {activeTab === 'gallery' && (
+          <PlanGallery 
+            planId={planId} 
+            currentUser={currentUser} 
+          />
+        )}
+
+        {/* --- OTHER TABS (Placeholders) ---
         {(activeTab === 'polls' || activeTab === 'gallery') && (
           <div className="flex flex-col items-center justify-center h-64 text-skin-muted">
             <div className="w-16 h-16 rounded-full bg-skin-base flex items-center justify-center mb-4">
@@ -252,7 +260,7 @@ export default function PlanDetails({ planId, currentUser, onBack }: Props) {
             </div>
             <p className="font-medium text-sm">The {activeTab} module is under construction.</p>
           </div>
-        )}
+        )} */}
 
       </div>
 
