@@ -3,6 +3,7 @@ import { ref, onValue, push, remove } from 'firebase/database';
 import { db } from '../firebase';
 import { format } from 'date-fns';
 import { clsx } from 'clsx';
+import PlanFinances from './PlanFinances';
 
 // --- ICONS ---
 const TrashIcon = ({ className }: { className?: string }) => (
@@ -157,7 +158,6 @@ export default function PlanDetails({ planId, currentUser, onBack }: Props) {
             </div>
 
             <div className="relative pl-2 space-y-8">
-               {/* Vertical Line */}
                <div className="absolute left-[7px] top-2 bottom-2 w-0.5 bg-skin-muted/10" />
 
                {activities.length === 0 ? (
@@ -167,7 +167,6 @@ export default function PlanDetails({ planId, currentUser, onBack }: Props) {
                ) : (
                  activities.map((activity) => (
                    <div key={activity.id} className="relative pl-8 group">
-                      {/* Timeline Dot */}
                       <div className="absolute left-0 top-1.5 w-4 h-4 rounded-full bg-skin-card border-4 border-skin-primary shadow-sm z-10" />
                       
                       <div className="flex justify-between items-start">
@@ -201,8 +200,17 @@ export default function PlanDetails({ planId, currentUser, onBack }: Props) {
           </div>
         )}
 
+        {/* --- TAB: FINANCES --- */}
+        {activeTab === 'finances' && (
+          <PlanFinances 
+            planId={planId} 
+            members={plan.members || []} 
+            currentUser={currentUser} 
+          />
+        )}
+
         {/* --- OTHER TABS (Placeholders) --- */}
-        {activeTab !== 'itinerary' && (
+        {(activeTab === 'polls' || activeTab === 'gallery') && (
           <div className="flex flex-col items-center justify-center h-64 text-skin-muted">
             <div className="w-16 h-16 rounded-full bg-skin-base flex items-center justify-center mb-4">
                {TABS.find(t => t.id === activeTab)?.icon}
