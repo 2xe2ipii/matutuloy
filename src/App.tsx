@@ -78,23 +78,22 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-skin-base text-skin-text flex flex-col relative overflow-hidden">
+    // FIX 1: Use 'fixed inset-0' and 'h-[100dvh]' to lock the viewport.
+    // This prevents the whole page from scrolling when the keyboard opens.
+    <div className="fixed inset-0 h-[100dvh] w-full bg-skin-base text-skin-text flex flex-col overflow-hidden">
       
-      {/* HEADER */}
+      {/* HEADER: Flex-none ensures it keeps its size and stays at top */}
       {currentUser && (
-        <div className="w-full flex justify-between items-center sticky top-0 z-30 bg-skin-base/90 backdrop-blur-md px-4 py-3 border-b border-skin-muted/10">
+        <div className="flex-none w-full flex justify-between items-center z-30 bg-skin-base/90 backdrop-blur-md px-4 py-3 border-b border-skin-muted/10">
            
            {/* LEFT SIDE: LOGO + TABS */}
            <div className="flex items-center gap-2 md:gap-3">
-              {/* Logo - Adjusted size for the new penguin image */}
-              <img src={logo} alt="Logo" className="w-12 h-12 object-contain" />
+              <img src={logo} alt="Logo" className="w-10 h-10 object-contain" />
               
               <div className="hidden md:block">
                 <h1 className="text-lg font-black text-skin-text tracking-tight leading-none">Free Ka Ba?</h1>
               </div>
               
-              {/* MAIN NAVIGATION TABS */}
-              {/* FIXED: Removed 'ml-4' on mobile. Now it only applies on md+ screens */}
               <div className="flex items-center bg-skin-card border border-skin-muted/20 rounded-full p-1 md:ml-4 shadow-inner">
                 <button 
                   onClick={() => setActiveTab('calendar')}
@@ -245,18 +244,21 @@ export default function App() {
 
       {/* LOGIN SCREEN */}
       {!currentUser ? (
-        <div className="flex-1 flex items-center justify-center p-4">
+        <div className="flex-1 flex items-center justify-center p-4 overflow-y-auto">
             <ProfileSelector 
               friends={FRIEND_GROUP} 
               onSelect={(name) => setCurrentUser(name)} 
             />
         </div>
       ) : (
-        <div className="flex-1 flex relative">
-           {/* MAIN CONTENT AREA */}
+        // CONTENT WRAPPER: Flex-1 to fill the remaining space below header
+        <div className="flex-1 relative w-full overflow-hidden">
+           
+           {/* MAIN SCROLLABLE AREA */}
            <main className={clsx(
-             "flex-1 overflow-y-auto transition-all duration-300 p-4 md:p-8",
-             isChatOpen ? "mr-0 md:mr-80" : "mr-0"
+             "absolute inset-0 overflow-y-auto transition-all duration-300 p-4 md:p-8",
+             // Add padding right on desktop to make room for chat without shrinking width visually
+             isChatOpen ? "md:pr-[21rem]" : "" 
            )}>
              <div className="max-w-7xl mx-auto">
                
@@ -269,7 +271,7 @@ export default function App() {
                          friends={FRIEND_GROUP}
                          onDateInteract={(date, names) => setAttendeeModalData({ date, names })}
                        />
-                       <div className="mt-8 text-center">
+                       <div className="mt-8 text-center pb-20 md:pb-0">
                          <p className="text-skin-muted text-sm">Need to plan the details? Switch to the <button onClick={() => setActiveTab('planning')} className="text-skin-primary font-bold hover:underline">Plans Tab</button></p>
                        </div>
                     </div>
@@ -278,21 +280,23 @@ export default function App() {
 
                {/* TAB 2: PLANNING DASHBOARD */}
                {activeTab === 'planning' && (
-                  <PlanningDashboard currentUser={currentUser} friends={FRIEND_GROUP} />
+                  <div className="pb-20 md:pb-0">
+                    <PlanningDashboard currentUser={currentUser} friends={FRIEND_GROUP} />
+                  </div>
                )}
 
              </div>
            </main>
 
-           {/* GLOBAL CHAT SIDEBAR (DRAWER) */}
+           {/* CHAT SIDEBAR: Absolute positioning inside the content wrapper */}
            <aside className={clsx(
-             "fixed top-[65px] bottom-0 right-0 w-full md:w-80 bg-skin-card shadow-2xl border-l border-skin-muted/20 z-20 transition-transform duration-300 ease-in-out",
+             "absolute inset-y-0 right-0 w-full md:w-80 bg-skin-card shadow-2xl border-l border-skin-muted/20 z-40 transition-transform duration-300 ease-in-out",
              isChatOpen ? "translate-x-0" : "translate-x-full"
            )}>
              <div className="h-full flex flex-col">
-               <div className="p-3 border-b border-skin-muted/20 flex justify-between items-center md:hidden">
+               <div className="p-3 border-b border-skin-muted/20 flex justify-between items-center md:hidden shrink-0">
                  <span className="font-bold text-skin-text">Chat</span>
-                 <button onClick={() => setIsChatOpen(false)} className="text-skin-muted">✕</button>
+                 <button onClick={() => setIsChatOpen(false)} className="text-skin-muted p-2">✕</button>
                </div>
                
                <div className="flex-1 overflow-hidden">
