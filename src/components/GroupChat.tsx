@@ -428,7 +428,7 @@ export default function GroupChat({ currentUser, userAvatars }: Props) {
 
   // 7. Render
   return (
-    <div className="flex flex-col h-[600px] bg-skin-card rounded-2xl shadow-xl border border-skin-muted/20 overflow-hidden relative">
+    <div className="flex flex-col h-full bg-skin-card rounded-2xl shadow-xl border border-skin-muted/20 overflow-hidden relative">
       
       {/* GLOBAL CLICK BACKDROP */}
       {(activeActionId || activeReactMenuId) && (

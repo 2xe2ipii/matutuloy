@@ -5,6 +5,7 @@ import AvailabilityHeatmap from "./components/AvailabilityHeatmap";
 import ProfileSelector from "./components/ProfileSelector";
 import GroupChat from "./components/GroupChat";
 import ThemeSelector from "./components/ThemeSelector";
+import PlanningDashboard from "./components/PlanningDashboard";
 import logo from "./assets/logo.png";
 import Cropper from 'react-easy-crop';
 import { getCroppedImg } from './canvasUtils';
@@ -17,8 +18,9 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [userAvatars, setUserAvatars] = useState<Record<string, string>>({});
   
-  // Mobile Calendar Toggle
-  const [isCalendarExpanded, setIsCalendarExpanded] = useState(true);
+  // NAVIGATION STATE
+  const [activeTab, setActiveTab] = useState<'calendar' | 'planning'>('calendar');
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   // Header Dropdown
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -33,7 +35,6 @@ export default function App() {
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
 
-  // 1. Fetch User Data (Avatars)
   useEffect(() => {
     const usersRef = ref(db, 'users');
     const unsubscribe = onValue(usersRef, (snapshot) => {
@@ -49,7 +50,6 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
-  // 2. Change Icon Logic
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
@@ -78,27 +78,68 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-skin-base text-skin-text flex flex-col p-4 md:p-8 relative">
+    <div className="min-h-screen bg-skin-base text-skin-text flex flex-col relative overflow-hidden">
       
       {/* HEADER */}
       {currentUser && (
-        <div className="w-full max-w-7xl mx-auto flex justify-between items-center mb-4 sticky top-0 z-30 bg-skin-base/90 backdrop-blur-sm py-2">
-           {/* Logo and Title */}
-           <div className="flex items-center gap-3">
-              <img src={logo} alt="Logo" className="w-10 h-10 object-contain" />
-              <div>
-                <h1 className="text-xl md:text-2xl font-black text-skin-text tracking-tight leading-none">Free Ka Ba?</h1>
-                <p className="text-[10px] md:text-xs text-skin-muted font-medium">Trip Planner</p>
+        <div className="w-full flex justify-between items-center sticky top-0 z-30 bg-skin-base/90 backdrop-blur-md px-4 py-3 border-b border-skin-muted/10">
+           
+           {/* LEFT SIDE: LOGO + TABS */}
+           <div className="flex items-center gap-2 md:gap-3">
+              {/* Logo - Adjusted size for the new penguin image */}
+              <img src={logo} alt="Logo" className="w-12 h-12 object-contain" />
+              
+              <div className="hidden md:block">
+                <h1 className="text-lg font-black text-skin-text tracking-tight leading-none">Free Ka Ba?</h1>
+              </div>
+              
+              {/* MAIN NAVIGATION TABS */}
+              {/* FIXED: Removed 'ml-4' on mobile. Now it only applies on md+ screens */}
+              <div className="flex items-center bg-skin-card border border-skin-muted/20 rounded-full p-1 md:ml-4 shadow-inner">
+                <button 
+                  onClick={() => setActiveTab('calendar')}
+                  className={clsx(
+                    "px-3 md:px-4 py-1.5 rounded-full text-xs font-bold transition-all",
+                    activeTab === 'calendar' 
+                      ? "bg-skin-primary text-skin-primary-fg shadow-sm" 
+                      : "text-skin-muted hover:text-skin-text"
+                  )}
+                >
+                  Dashboard
+                </button>
+                <button 
+                  onClick={() => setActiveTab('planning')}
+                  className={clsx(
+                    "px-3 md:px-4 py-1.5 rounded-full text-xs font-bold transition-all",
+                    activeTab === 'planning' 
+                      ? "bg-skin-primary text-skin-primary-fg shadow-sm" 
+                      : "text-skin-muted hover:text-skin-text"
+                  )}
+                >
+                  Plans
+                </button>
               </div>
            </div>
            
-           {/* RIGHT SIDE ACTIONS: Theme + Profile */}
-           <div className="flex items-center gap-3">
-             
-             {/* 1. Theme Selector (Moved here from bottom) */}
+           {/* RIGHT ACTIONS */}
+           <div className="flex items-center gap-2 md:gap-3">
              <ThemeSelector />
+             
+             {/* Toggle Chat Button */}
+             <button 
+               onClick={() => setIsChatOpen(!isChatOpen)}
+               className={clsx(
+                 "w-10 h-10 rounded-full flex items-center justify-center transition-all border",
+                 isChatOpen 
+                   ? "bg-skin-primary text-skin-primary-fg border-skin-primary" 
+                   : "bg-skin-card text-skin-text border-skin-muted/20 hover:bg-skin-base"
+               )}
+               title="Toggle Chat"
+             >
+               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+             </button>
 
-             {/* 2. Avatar Dropdown */}
+             {/* Profile Dropdown */}
              <div className="relative">
                <button 
                  onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -139,9 +180,9 @@ export default function App() {
         </div>
       )}
 
-      {/* CHANGE ICON MODAL */}
+      {/* MODALS & OVERLAYS */}
       {showPhotoUpload && imageSrc && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
            <div className="bg-skin-card w-full max-w-md rounded-2xl p-4 shadow-2xl flex flex-col gap-4">
               <h3 className="font-bold text-skin-text">Crop your new icon</h3>
               <div className="relative w-full h-64 bg-slate-900 rounded-xl overflow-hidden">
@@ -163,7 +204,6 @@ export default function App() {
         </div>
       )}
 
-      {/* WHO IS FREE MODAL */}
       {attendeeModalData && (
         <div 
           className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
@@ -203,58 +243,65 @@ export default function App() {
         </div>
       )}
 
-      {/* MAIN CONTENT AREA */}
+      {/* LOGIN SCREEN */}
       {!currentUser ? (
-        <div className="flex-1 flex items-center justify-center">
+        <div className="flex-1 flex items-center justify-center p-4">
             <ProfileSelector 
               friends={FRIEND_GROUP} 
               onSelect={(name) => setCurrentUser(name)} 
             />
         </div>
       ) : (
-        <div className="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6 items-start relative">
-           
-           {/* Left Column: Calendar */}
-           <div className="lg:col-span-2 flex flex-col gap-4">
-              
-              {/* Mobile Toggle for Calendar */}
-              <div className="lg:hidden flex justify-between items-center bg-skin-card p-3 rounded-xl shadow-sm border border-skin-muted/20">
-                 <span className="text-sm font-bold text-skin-text">Calendar</span>
-                 <button 
-                    onClick={() => setIsCalendarExpanded(!isCalendarExpanded)}
-                    className="text-xs bg-skin-base text-skin-text px-3 py-1.5 rounded-full font-medium"
-                 >
-                   {isCalendarExpanded ? "Hide" : "Show"}
-                 </button>
-              </div>
-
-              {/* The Calendar Component */}
-              <div className={clsx(
-                "transition-all duration-300 overflow-hidden",
-                isCalendarExpanded ? "max-h-[800px] opacity-100" : "max-h-0 opacity-0 lg:max-h-none lg:opacity-100"
-              )}>
-                <AvailabilityHeatmap 
-                  currentUser={currentUser} 
-                  friends={FRIEND_GROUP}
-                  onDateInteract={(date, names) => setAttendeeModalData({ date, names })}
-                />
-              </div>
-           </div>
-
-           {/* Right Column: Chat */}
-           <div className={clsx(
-             "h-full lg:col-span-1 transition-transform duration-300",
-             !isCalendarExpanded && "-mt-4" 
+        <div className="flex-1 flex relative">
+           {/* MAIN CONTENT AREA */}
+           <main className={clsx(
+             "flex-1 overflow-y-auto transition-all duration-300 p-4 md:p-8",
+             isChatOpen ? "mr-0 md:mr-80" : "mr-0"
            )}>
-              <GroupChat currentUser={currentUser} userAvatars={userAvatars} />
-           </div>
+             <div className="max-w-7xl mx-auto">
+               
+               {/* TAB 1: CALENDAR DASHBOARD */}
+               {activeTab === 'calendar' && (
+                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+                    <div className="max-w-4xl mx-auto">
+                       <AvailabilityHeatmap 
+                         currentUser={currentUser} 
+                         friends={FRIEND_GROUP}
+                         onDateInteract={(date, names) => setAttendeeModalData({ date, names })}
+                       />
+                       <div className="mt-8 text-center">
+                         <p className="text-skin-muted text-sm">Need to plan the details? Switch to the <button onClick={() => setActiveTab('planning')} className="text-skin-primary font-bold hover:underline">Plans Tab</button></p>
+                       </div>
+                    </div>
+                 </div>
+               )}
 
+               {/* TAB 2: PLANNING DASHBOARD */}
+               {activeTab === 'planning' && (
+                  <PlanningDashboard currentUser={currentUser} friends={FRIEND_GROUP} />
+               )}
+
+             </div>
+           </main>
+
+           {/* GLOBAL CHAT SIDEBAR (DRAWER) */}
+           <aside className={clsx(
+             "fixed top-[65px] bottom-0 right-0 w-full md:w-80 bg-skin-card shadow-2xl border-l border-skin-muted/20 z-20 transition-transform duration-300 ease-in-out",
+             isChatOpen ? "translate-x-0" : "translate-x-full"
+           )}>
+             <div className="h-full flex flex-col">
+               <div className="p-3 border-b border-skin-muted/20 flex justify-between items-center md:hidden">
+                 <span className="font-bold text-skin-text">Chat</span>
+                 <button onClick={() => setIsChatOpen(false)} className="text-skin-muted">✕</button>
+               </div>
+               
+               <div className="flex-1 overflow-hidden">
+                 <GroupChat currentUser={currentUser} userAvatars={userAvatars} />
+               </div>
+             </div>
+           </aside>
         </div>
       )}
-      
-      {/* NOTE: I have completely removed the floating <ThemeSelector /> 
-        that used to be here at the bottom. 
-      */}
     </div>
   );
 }
