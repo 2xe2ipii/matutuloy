@@ -17,6 +17,7 @@ export default function ThemeSelector() {
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Read from local storage on load
     const saved = localStorage.getItem('app-theme') || 'light';
     setCurrentTheme(saved);
     document.documentElement.setAttribute('data-theme', saved);
@@ -40,7 +41,7 @@ export default function ThemeSelector() {
 
   return (
     <div className="relative" ref={menuRef}>
-      {/* Toggle Button - Now sized w-10 h-10 to match avatar */}
+      {/* Toggle Button - Sized to match the Profile Avatar (w-10 h-10) */}
       <button 
         onClick={() => setIsOpen(!isOpen)}
         className="w-10 h-10 rounded-full bg-skin-card text-skin-text shadow-sm border border-skin-muted/20 flex items-center justify-center text-lg hover:bg-skin-base active:scale-95 transition-all"
@@ -49,7 +50,7 @@ export default function ThemeSelector() {
         🎨
       </button>
 
-      {/* Dropdown Menu - Aligned to the right */}
+      {/* Dropdown Menu - Aligned to the Right */}
       <div className={clsx(
         "absolute top-full right-0 mt-2 z-50 transition-all duration-200 origin-top-right",
         isOpen 

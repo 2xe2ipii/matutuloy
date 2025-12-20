@@ -27,7 +27,7 @@ export default function App() {
   // Who's Free Tooltip/Modal
   const [attendeeModalData, setAttendeeModalData] = useState<{ date: Date, names: string[] } | null>(null);
 
-  // Photo Upload State (Duplicate logic from ProfileSelector, kept simple here)
+  // Photo Upload State
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
@@ -65,15 +65,12 @@ export default function App() {
     if (!imageSrc || !croppedAreaPixels || !currentUser) return;
     try {
       const croppedImage = await getCroppedImg(imageSrc, croppedAreaPixels);
-      
-      // This saves the Base64 string to the DB
       await set(ref(db, `users/${currentUser}/avatar`), croppedImage);
       
-      // Reset states
       setShowPhotoUpload(false);
       setImageSrc(null);
-      setCrop({ x: 0, y: 0 }); // Optional: Reset crop position
-      setZoom(1);              // Optional: Reset zoom
+      setCrop({ x: 0, y: 0 }); 
+      setZoom(1);              
     } catch (e) {
       console.error("Failed to save icon:", e);
       alert("Failed to save image. Try a smaller file.");
@@ -86,6 +83,7 @@ export default function App() {
       {/* HEADER */}
       {currentUser && (
         <div className="w-full max-w-7xl mx-auto flex justify-between items-center mb-4 sticky top-0 z-30 bg-skin-base/90 backdrop-blur-sm py-2">
+           {/* Logo and Title */}
            <div className="flex items-center gap-3">
               <img src={logo} alt="Logo" className="w-10 h-10 object-contain" />
               <div>
@@ -97,7 +95,7 @@ export default function App() {
            {/* RIGHT SIDE ACTIONS: Theme + Profile */}
            <div className="flex items-center gap-3">
              
-             {/* 1. Theme Selector is now here! */}
+             {/* 1. Theme Selector (Moved here from bottom) */}
              <ThemeSelector />
 
              {/* 2. Avatar Dropdown */}
@@ -165,7 +163,7 @@ export default function App() {
         </div>
       )}
 
-      {/* WHO IS FREE MODAL (Mobile/Desktop Popup) */}
+      {/* WHO IS FREE MODAL */}
       {attendeeModalData && (
         <div 
           className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
@@ -233,7 +231,6 @@ export default function App() {
               {/* The Calendar Component */}
               <div className={clsx(
                 "transition-all duration-300 overflow-hidden",
-                // Mobile: animate height or block. Desktop: always block
                 isCalendarExpanded ? "max-h-[800px] opacity-100" : "max-h-0 opacity-0 lg:max-h-none lg:opacity-100"
               )}>
                 <AvailabilityHeatmap 
@@ -247,7 +244,6 @@ export default function App() {
            {/* Right Column: Chat */}
            <div className={clsx(
              "h-full lg:col-span-1 transition-transform duration-300",
-             // If calendar is hidden on mobile, chat slides up visually
              !isCalendarExpanded && "-mt-4" 
            )}>
               <GroupChat currentUser={currentUser} userAvatars={userAvatars} />
@@ -256,8 +252,9 @@ export default function App() {
         </div>
       )}
       
-      {/* THEME SELECTOR */}
-      <ThemeSelector />
+      {/* NOTE: I have completely removed the floating <ThemeSelector /> 
+        that used to be here at the bottom. 
+      */}
     </div>
   );
 }
