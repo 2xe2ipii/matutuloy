@@ -51,6 +51,7 @@ export default function BackgroundOcean() {
               height: `${el.size}px`,
               animation: `bubble-rise ${el.duration}s linear infinite`,
               animationDelay: `${el.delay}s`,
+              willChange: 'transform',
             }}
           />
         ) : (
@@ -63,6 +64,7 @@ export default function BackgroundOcean() {
               width: `${el.size}px`,
               animation: `fish-swim ${el.duration}s linear infinite`,
               animationDelay: `${el.delay}s`,
+              willChange: 'transform',
             }}
           >
             <FishIcon type={el.fishType} />
