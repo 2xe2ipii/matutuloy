@@ -225,7 +225,7 @@ export default function App() {
 
       {/* LOGIN SCREEN */}
       {!currentUser ? (
-        <div className="flex-1 flex items-center justify-center p-4 overflow-y-auto">
+        <div className="flex-1 flex items-start md:items-center justify-center p-4 pt-20 md:pt-4 overflow-y-auto">
             <ProfileSelector 
               friends={FRIEND_GROUP} 
               onSelect={(name) => setCurrentUser(name)} 
