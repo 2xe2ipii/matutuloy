@@ -113,7 +113,7 @@ export default function AvailabilityHeatmap({
   };
 
   return (
-    <div className="w-full p-6 bg-skin-card rounded-2xl shadow-xl border border-skin-muted/20">
+    <div className="w-full">
       
       {/* HEADER */}
       <div className="flex justify-between items-center mb-6 select-none">
@@ -174,7 +174,7 @@ export default function AvailabilityHeatmap({
               onPointerLeave={!isPast ? handlePointerUp : undefined}
               onContextMenu={(e) => !isPast && handleContextMenu(e, date, attendees)}
               className={cn(
-                "h-14 w-full rounded-lg flex flex-col items-center justify-start pt-1.5 transition-all duration-100 relative select-none touch-manipulation border",
+                "aspect-square w-full rounded-lg flex flex-col items-center justify-start pt-1.5 transition-all duration-100 relative select-none touch-manipulation border",
                 getIntensityClass(count, isPast),
                 isSelectedByMe && !isPast && "border-2 border-skin-primary", 
                 isTodayDate && !count && "border-2 border-dashed border-skin-muted/50"
