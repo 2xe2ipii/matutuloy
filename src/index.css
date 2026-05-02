@@ -23,24 +23,48 @@
 
 @layer base {
   :root {
-    /* DEFAULT (LIGHT) - Ocean Surface Palette */
-    /* 022B3A (Deep), 1F7A8C (Teal), BFDBF7 (Sky), E1E5F2 (Cloud), FFFFFF (White) */
-    --skin-base: #E1E5F2; /* Cloud Blue */
-    --skin-card: rgba(255, 255, 255, 0.85); /* Translucent White */
-    --skin-text: #022B3A; /* Deep Blue */
-    --skin-muted: #1F7A8C; /* Teal (Accent/Muted) */
-    --skin-primary: #1F7A8C; /* Teal */
-    --skin-primary-fg: #FFFFFF;
+    /* BIOLUMINESCENCE (default) — deep sea, cyan glow */
+    --skin-base: #071E2C;
+    --skin-card: rgba(0, 200, 220, 0.07);
+    --skin-text: #78E8F8;
+    --skin-muted: #4DC8D8;
+    --skin-primary: #00D4E8;
+    --skin-primary-fg: #071E2C;
   }
 
-  [data-theme='dark'] {
-    /* DEEP SEA (DARK) - Reversing the Palette */
-    --skin-base: #022B3A; /* Deep Blue */
-    --skin-card: rgba(31, 122, 140, 0.7); /* Translucent Teal */
-    --skin-text: #E1E5F2; /* Cloud Blue Text */
-    --skin-muted: #BFDBF7; /* Sky Blue Muted */
-    --skin-primary: #BFDBF7; /* Sky Blue */
-    --skin-primary-fg: #022B3A;
+  [data-theme='bio'] {
+    /* Explicit selector — ThemeSelector always sets data-theme="bio";
+       values mirror :root so the fallback and explicit states are identical. */
+    --skin-base: #071E2C;
+    --skin-card: rgba(0, 200, 220, 0.07);
+    --skin-text: #78E8F8;
+    --skin-muted: #4DC8D8;
+    --skin-primary: #00D4E8;
+    --skin-primary-fg: #071E2C;
+  }
+
+  [data-theme='tropical'] {
+    /* TROPICAL — shallow reef, bright aqua */
+    /* primary/muted darkened vs initial design (#00ACC1/#0097A7) to reach
+       WCAG AA contrast on the bright #7ED9E0 base */
+    --skin-base: #7ED9E0;
+    --skin-card: rgba(255, 255, 255, 0.85);
+    --skin-text: #003844;
+    --skin-muted: #005A66;
+    --skin-primary: #006C7A;
+    --skin-primary-fg: #ffffff;
+  }
+
+  [data-theme='ocean'] {
+    /* OPEN OCEAN — horizon blue, coastal calm */
+    /* primary/muted darkened vs initial design (#0288D1/#0277BD) to reach
+       WCAG AA contrast on the light #BCD9EF base */
+    --skin-base: #BCD9EF;
+    --skin-card: rgba(255, 255, 255, 0.85);
+    --skin-text: #012A42;
+    --skin-muted: #015280;
+    --skin-primary: #01548A;
+    --skin-primary-fg: #ffffff;
   }
 
   body {

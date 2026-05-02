@@ -24,3 +24,7 @@ dist-ssr
 *.sw?
 
 CLAUDE.md
+
+# Documentation and specialized tools
+/docs
+.superpowers

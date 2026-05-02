@@ -4,8 +4,15 @@ import { ref, onValue } from 'firebase/database';
 import { db } from '../firebase';
 
 const AVATAR_COLORS = [
-  'bg-emerald-500/20', 'bg-sky-500/20', 'bg-blue-500/20', 
-  'bg-cyan-500/20', 'bg-indigo-500/20', 'bg-teal-500/20'
+  'bg-cyan-400/20',
+  'bg-teal-400/20',
+  'bg-sky-400/20',
+  'bg-cyan-300/20',
+  'bg-blue-400/20',
+  'bg-teal-300/20',
+  'bg-cyan-500/20',
+  'bg-sky-300/20',
+  'bg-teal-500/20',
 ];
 
 interface Props {
