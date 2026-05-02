@@ -210,10 +210,6 @@ export default function AvailabilityHeatmap({
           );
         })}
       </div>
-
-      <p className="text-[10px] text-skin-muted/50 text-center mt-6">
-        Tip: Long press (mobile) or Right click (desktop) a date to see who is free.
-      </p>
     </div>
   );
 }
