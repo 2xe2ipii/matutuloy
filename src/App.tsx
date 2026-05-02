@@ -9,6 +9,7 @@ import { db, storage } from "./firebase"; // <--- Import storage
 import AvailabilityHeatmap from "./components/AvailabilityHeatmap";
 import ProfileSelector from "./components/ProfileSelector";
 import ThemeSelector from "./components/ThemeSelector";
+import BackgroundOcean from "./components/BackgroundOcean";
 import logo from "./assets/logo.png";
 import Cropper from 'react-easy-crop';
 import { getCroppedImg, dataURLtoBlob } from './canvasUtils'; // <--- Import helper
@@ -98,6 +99,7 @@ export default function App() {
 
   return (
     <div className="fixed inset-0 h-[100dvh] w-full bg-skin-base text-skin-text flex flex-col overflow-hidden">
+      <BackgroundOcean />
       
       {/* HEADER */}
       {currentUser && (

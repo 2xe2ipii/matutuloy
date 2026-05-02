@@ -19,6 +19,20 @@
     0% { opacity: 0; transform: scale(0.95); }
     100% { opacity: 1; transform: scale(1); }
   }
+  @keyframes bubble-rise {
+    0% { transform: translateY(0) translateX(0); opacity: 0; }
+    10% { opacity: 1; }
+    50% { transform: translateY(-50vh) translateX(20px); }
+    90% { opacity: 1; }
+    100% { transform: translateY(-110vh) translateX(-20px); opacity: 0; }
+  }
+  @keyframes fish-swim {
+    0% { transform: translateX(-100%) scaleX(1); }
+    49% { transform: translateX(110vw) scaleX(1); }
+    50% { transform: translateX(110vw) scaleX(-1); }
+    99% { transform: translateX(-100%) scaleX(-1); }
+    100% { transform: translateX(-100%) scaleX(1); }
+  }
 }
 
 @layer base {
@@ -26,7 +40,7 @@
     /* DEFAULT (LIGHT) - Ocean Surface Palette */
     /* 022B3A (Deep), 1F7A8C (Teal), BFDBF7 (Sky), E1E5F2 (Cloud), FFFFFF (White) */
     --skin-base: #E1E5F2; /* Cloud Blue */
-    --skin-card: #FFFFFF; /* White */
+    --skin-card: rgba(255, 255, 255, 0.85); /* Translucent White */
     --skin-text: #022B3A; /* Deep Blue */
     --skin-muted: #1F7A8C; /* Teal (Accent/Muted) */
     --skin-primary: #1F7A8C; /* Teal */
@@ -36,7 +50,7 @@
   [data-theme='dark'] {
     /* DEEP SEA (DARK) - Reversing the Palette */
     --skin-base: #022B3A; /* Deep Blue */
-    --skin-card: #1F7A8C; /* Teal Card (Slightly lighter than base) */
+    --skin-card: rgba(31, 122, 140, 0.7); /* Translucent Teal */
     --skin-text: #E1E5F2; /* Cloud Blue Text */
     --skin-muted: #BFDBF7; /* Sky Blue Muted */
     --skin-primary: #BFDBF7; /* Sky Blue */

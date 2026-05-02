@@ -144,8 +144,8 @@ export default function AvailabilityHeatmap({
 
       {/* DAYS HEADER */}
       <div className="grid grid-cols-7 mb-2 text-center select-none">
-        {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day) => (
-          <div key={day} className="text-[10px] font-black text-skin-muted uppercase tracking-widest">{day}</div>
+        {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
+          <div key={`${day}-${i}`} className="text-[10px] font-black text-skin-muted uppercase tracking-widest">{day}</div>
         ))}
       </div>
 
