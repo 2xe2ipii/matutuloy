@@ -23,72 +23,30 @@
 
 @layer base {
   :root {
-    /* DEFAULT (LIGHT) */
-    --skin-base: #f8fafc; /* slate-50 */
-    --skin-card: #ffffff; /* white */
-    --skin-text: #1e293b; /* slate-800 */
-    --skin-muted: #94a3b8; /* slate-400 */
-    --skin-primary: #3b82f6; /* blue-500 */
-    --skin-primary-fg: #ffffff;
+    /* DEFAULT (LIGHT) - Ocean Surface Palette */
+    /* 022B3A (Deep), 1F7A8C (Teal), BFDBF7 (Sky), E1E5F2 (Cloud), FFFFFF (White) */
+    --skin-base: #E1E5F2; /* Cloud Blue */
+    --skin-card: #FFFFFF; /* White */
+    --skin-text: #022B3A; /* Deep Blue */
+    --skin-muted: #1F7A8C; /* Teal (Accent/Muted) */
+    --skin-primary: #1F7A8C; /* Teal */
+    --skin-primary-fg: #FFFFFF;
   }
 
   [data-theme='dark'] {
-    --skin-base: #0f172a; /* slate-900 */
-    --skin-card: #1e293b; /* slate-800 */
-    --skin-text: #f1f5f9; /* slate-100 */
-    --skin-muted: #94a3b8; /* slate-400 */
-    --skin-primary: #60a5fa; /* blue-400 */
-    --skin-primary-fg: #0f172a;
-  }
-
-  [data-theme='christmas'] {
-    --skin-base: #fef2f2; /* red-50 */
-    --skin-card: #ffffff;
-    --skin-text: #166534; /* green-800 */
-    --skin-muted: #b91c1c; /* red-700 */
-    --skin-primary: #dc2626; /* red-600 */
-    --skin-primary-fg: #ffffff;
-  }
-
-  [data-theme='halloween'] {
-    --skin-base: #27272a; /* zinc-800 */
-    --skin-card: #3f3f46; /* zinc-700 */
-    --skin-text: #fb923c; /* orange-400 */
-    --skin-muted: #a78bfa; /* violet-400 */
-    --skin-primary: #ea580c; /* orange-600 */
-    --skin-primary-fg: #ffffff;
-  }
-
-  [data-theme='fiesta'] {
-    --skin-base: #fffbeb; /* amber-50 */
-    --skin-card: #ffffff;
-    --skin-text: #be185d; /* pink-700 */
-    --skin-muted: #d97706; /* amber-600 */
-    --skin-primary: #10b981; /* emerald-500 */
-    --skin-primary-fg: #ffffff;
-  }
-
-  [data-theme='beach'] {
-    --skin-base: #fff7ed; /* orange-50 (sand) */
-    --skin-card: #ffffff;
-    --skin-text: #0c4a6e; /* sky-900 */
-    --skin-muted: #0ea5e9; /* sky-500 */
-    --skin-primary: #0ea5e9; /* sky-500 */
-    --skin-primary-fg: #ffffff;
-  }
-  
-  [data-theme='lofi'] {
-    --skin-base: #2e1065; /* violet-950 */
-    --skin-card: #4c1d95; /* violet-900 */
-    --skin-text: #e0e7ff; /* indigo-100 */
-    --skin-muted: #a5b4fc; /* indigo-300 */
-    --skin-primary: #f472b6; /* pink-400 */
-    --skin-primary-fg: #2e1065;
+    /* DEEP SEA (DARK) - Reversing the Palette */
+    --skin-base: #022B3A; /* Deep Blue */
+    --skin-card: #1F7A8C; /* Teal Card (Slightly lighter than base) */
+    --skin-text: #E1E5F2; /* Cloud Blue Text */
+    --skin-muted: #BFDBF7; /* Sky Blue Muted */
+    --skin-primary: #BFDBF7; /* Sky Blue */
+    --skin-primary-fg: #022B3A;
   }
 
   body {
     background-color: var(--skin-base);
     color: var(--skin-text);
-    transition: background-color 0.5s ease, color 0.5s ease;
+    transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1), 
+                color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
