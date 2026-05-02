@@ -1,8 +1,9 @@
 import { initializeApp } from "firebase/app";
 import { getDatabase } from "firebase/database";
+import { getStorage } from "firebase/storage"; // <--- Import this
 
-// PASTE YOUR CONFIG OBJECT HERE (From Firebase Console)
 const firebaseConfig = {
+  // ... your existing config keys ...
   apiKey: "AIzaSyC2cimY00PUrpR3hDgpxTdnLLPMnbBicb4",
   authDomain: "anti-drawing.firebaseapp.com",
   databaseURL: "https://anti-drawing-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -13,6 +14,6 @@ const firebaseConfig = {
   measurementId: "G-PP92J3C69J"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 export const db = getDatabase(app);
+export const storage = getStorage(app); // <--- Export this

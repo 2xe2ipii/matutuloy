@@ -1,15 +1,17 @@
 import { useState, useEffect } from "react";
 import { ref, onValue, set } from "firebase/database";
-import { db } from "./firebase";
+import { 
+  ref as storageRef, 
+  uploadBytes, 
+  getDownloadURL 
+} from "firebase/storage"; // <--- NEW IMPORTS
+import { db, storage } from "./firebase"; // <--- Import storage
 import AvailabilityHeatmap from "./components/AvailabilityHeatmap";
 import ProfileSelector from "./components/ProfileSelector";
-import GroupChat from "./components/GroupChat";
 import ThemeSelector from "./components/ThemeSelector";
-import PlanningDashboard from "./components/PlanningDashboard";
 import logo from "./assets/logo.png";
 import Cropper from 'react-easy-crop';
-import { getCroppedImg } from './canvasUtils';
-import { clsx } from 'clsx';
+import { getCroppedImg, dataURLtoBlob } from './canvasUtils'; // <--- Import helper
 import { format } from "date-fns";
 
 const FRIEND_GROUP = ["Cassey", "Drex", "Glad", "King", "Marielle", "Rhed", "Roan", "Ryan", "Teya"];
@@ -19,8 +21,6 @@ export default function App() {
   const [userAvatars, setUserAvatars] = useState<Record<string, string>>({});
   
   // NAVIGATION STATE
-  const [activeTab, setActiveTab] = useState<'calendar' | 'planning'>('calendar');
-  const [isChatOpen, setIsChatOpen] = useState(false);
 
   // Header Dropdown
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -34,6 +34,7 @@ export default function App() {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
+  const [isUploading, setIsUploading] = useState(false); // <--- Loading state
 
   useEffect(() => {
     const usersRef = ref(db, 'users');
@@ -61,11 +62,27 @@ export default function App() {
     }
   };
 
+  // --- UPDATED SAVE FUNCTION ---
   const saveNewIcon = async () => {
     if (!imageSrc || !croppedAreaPixels || !currentUser) return;
+    
+    setIsUploading(true);
     try {
-      const croppedImage = await getCroppedImg(imageSrc, croppedAreaPixels);
-      await set(ref(db, `users/${currentUser}/avatar`), croppedImage);
+      // 1. Get the cropped image as Base64 string
+      const croppedBase64 = await getCroppedImg(imageSrc, croppedAreaPixels);
+      
+      // 2. Convert to Blob for Storage
+      const blob = dataURLtoBlob(croppedBase64);
+
+      // 3. Create Storage Reference (avatars/username_timestamp.jpg)
+      const fileRef = storageRef(storage, `avatars/${currentUser}_${Date.now()}.jpg`);
+      
+      // 4. Upload
+      await uploadBytes(fileRef, blob);
+      const downloadURL = await getDownloadURL(fileRef);
+
+      // 5. Save the *URL* to Realtime Database
+      await set(ref(db, `users/${currentUser}/avatar`), downloadURL);
       
       setShowPhotoUpload(false);
       setImageSrc(null);
@@ -74,71 +91,29 @@ export default function App() {
     } catch (e) {
       console.error("Failed to save icon:", e);
       alert("Failed to save image. Try a smaller file.");
+    } finally {
+      setIsUploading(false);
     }
   };
 
   return (
-    // FIX 1: Use 'fixed inset-0' and 'h-[100dvh]' to lock the viewport.
-    // This prevents the whole page from scrolling when the keyboard opens.
     <div className="fixed inset-0 h-[100dvh] w-full bg-skin-base text-skin-text flex flex-col overflow-hidden">
       
-      {/* HEADER: Flex-none ensures it keeps its size and stays at top */}
+      {/* HEADER */}
       {currentUser && (
         <div className="flex-none w-full flex justify-between items-center z-30 bg-skin-base/90 backdrop-blur-md px-4 py-3 border-b border-skin-muted/10">
            
-           {/* LEFT SIDE: LOGO + TABS */}
            <div className="flex items-center gap-2 md:gap-3">
               <img src={logo} alt="Logo" className="w-10 h-10 object-contain" />
               
               <div className="hidden md:block">
                 <h1 className="text-lg font-black text-skin-text tracking-tight leading-none">Free Ka Ba?</h1>
               </div>
-              
-              <div className="flex items-center bg-skin-card border border-skin-muted/20 rounded-full p-1 md:ml-4 shadow-inner">
-                <button 
-                  onClick={() => setActiveTab('calendar')}
-                  className={clsx(
-                    "px-3 md:px-4 py-1.5 rounded-full text-xs font-bold transition-all",
-                    activeTab === 'calendar' 
-                      ? "bg-skin-primary text-skin-primary-fg shadow-sm" 
-                      : "text-skin-muted hover:text-skin-text"
-                  )}
-                >
-                  Dashboard
-                </button>
-                <button 
-                  onClick={() => setActiveTab('planning')}
-                  className={clsx(
-                    "px-3 md:px-4 py-1.5 rounded-full text-xs font-bold transition-all",
-                    activeTab === 'planning' 
-                      ? "bg-skin-primary text-skin-primary-fg shadow-sm" 
-                      : "text-skin-muted hover:text-skin-text"
-                  )}
-                >
-                  Plans
-                </button>
-              </div>
            </div>
            
-           {/* RIGHT ACTIONS */}
            <div className="flex items-center gap-2 md:gap-3">
              <ThemeSelector />
              
-             {/* Toggle Chat Button */}
-             <button 
-               onClick={() => setIsChatOpen(!isChatOpen)}
-               className={clsx(
-                 "w-10 h-10 rounded-full flex items-center justify-center transition-all border",
-                 isChatOpen 
-                   ? "bg-skin-primary text-skin-primary-fg border-skin-primary" 
-                   : "bg-skin-card text-skin-text border-skin-muted/20 hover:bg-skin-base"
-               )}
-               title="Toggle Chat"
-             >
-               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-             </button>
-
-             {/* Profile Dropdown */}
              <div className="relative">
                <button 
                  onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -197,7 +172,13 @@ export default function App() {
               </div>
               <div className="flex justify-end gap-2">
                 <button onClick={() => setShowPhotoUpload(false)} className="px-4 py-2 text-sm text-skin-muted">Cancel</button>
-                <button onClick={saveNewIcon} className="px-4 py-2 bg-skin-primary text-skin-primary-fg rounded-full text-sm font-bold">Save Icon</button>
+                <button 
+                  onClick={saveNewIcon} 
+                  disabled={isUploading}
+                  className="px-4 py-2 bg-skin-primary text-skin-primary-fg rounded-full text-sm font-bold disabled:opacity-50"
+                >
+                  {isUploading ? "Saving..." : "Save Icon"}
+                </button>
               </div>
            </div>
         </div>
@@ -251,59 +232,20 @@ export default function App() {
             />
         </div>
       ) : (
-        // CONTENT WRAPPER: Flex-1 to fill the remaining space below header
         <div className="flex-1 relative w-full overflow-hidden">
-           
-           {/* MAIN SCROLLABLE AREA */}
-           <main className={clsx(
-             "absolute inset-0 overflow-y-auto transition-all duration-300 p-4 md:p-8",
-             // Add padding right on desktop to make room for chat without shrinking width visually
-             isChatOpen ? "md:pr-[21rem]" : "" 
-           )}>
+           <main className="absolute inset-0 overflow-y-auto transition-all duration-300 p-4 md:p-8">
              <div className="max-w-7xl mx-auto">
-               
-               {/* TAB 1: CALENDAR DASHBOARD */}
-               {activeTab === 'calendar' && (
-                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
-                    <div className="max-w-4xl mx-auto">
-                       <AvailabilityHeatmap 
-                         currentUser={currentUser} 
-                         friends={FRIEND_GROUP}
-                         onDateInteract={(date, names) => setAttendeeModalData({ date, names })}
-                       />
-                       <div className="mt-8 text-center pb-20 md:pb-0">
-                         <p className="text-skin-muted text-sm">Need to plan the details? Switch to the <button onClick={() => setActiveTab('planning')} className="text-skin-primary font-bold hover:underline">Plans Tab</button></p>
-                       </div>
-                    </div>
-                 </div>
-               )}
-
-               {/* TAB 2: PLANNING DASHBOARD */}
-               {activeTab === 'planning' && (
-                  <div className="pb-20 md:pb-0">
-                    <PlanningDashboard currentUser={currentUser} friends={FRIEND_GROUP} />
+               <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+                  <div className="max-w-4xl mx-auto">
+                     <AvailabilityHeatmap 
+                       currentUser={currentUser} 
+                       friends={FRIEND_GROUP}
+                       onDateInteract={(date, names) => setAttendeeModalData({ date, names })}
+                     />
                   </div>
-               )}
-
+               </div>
              </div>
            </main>
-
-           {/* CHAT SIDEBAR: Absolute positioning inside the content wrapper */}
-           <aside className={clsx(
-             "absolute inset-y-0 right-0 w-full md:w-80 bg-skin-card shadow-2xl border-l border-skin-muted/20 z-40 transition-transform duration-300 ease-in-out",
-             isChatOpen ? "translate-x-0" : "translate-x-full"
-           )}>
-             <div className="h-full flex flex-col">
-               <div className="p-3 border-b border-skin-muted/20 flex justify-between items-center md:hidden shrink-0">
-                 <span className="font-bold text-skin-text">Chat</span>
-                 <button onClick={() => setIsChatOpen(false)} className="text-skin-muted p-2">✕</button>
-               </div>
-               
-               <div className="flex-1 overflow-hidden">
-                 <GroupChat currentUser={currentUser} userAvatars={userAvatars} />
-               </div>
-             </div>
-           </aside>
         </div>
       )}
     </div>
