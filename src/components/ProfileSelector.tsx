@@ -276,11 +276,11 @@ export default function ProfileSelector({ friends, onSelect }: Props) {
   // RENDER: PROFILE SELECTOR
   return (
     <div className="flex flex-col items-center justify-center min-h-[50vh] animate-in fade-in zoom-in duration-300">
-      <h1 className="text-3xl font-black text-skin-text mb-8 tracking-tight">Who's planning?</h1>
+      <h1 className="text-3xl font-black text-skin-text mb-8 tracking-tight">Sino ka?</h1>
       {loading ? (
          <div className="text-skin-muted">Loading profiles...</div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
+        <div className="grid grid-cols-3 gap-6">
           {friends.map((friend, index) => (
             <button
               key={friend}
