@@ -202,7 +202,7 @@ export default function App() {
              
              {attendeeModalData.names.length > 0 ? (
                <div className="space-y-3">
-                 <p className="text-sm text-green-600 font-medium">{attendeeModalData.names.length} people are free!</p>
+                 <p className="text-sm text-skin-primary font-bold">{attendeeModalData.names.length} people are free!</p>
                  <div className="grid grid-cols-4 gap-2">
                     {attendeeModalData.names.map(name => (
                       <div key={name} className="flex flex-col items-center gap-1">

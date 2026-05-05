@@ -72,6 +72,11 @@
     color: var(--skin-text);
     transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1), 
                 color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button, a {
+    @apply outline-none;
   }
 
   /* KEYFRAMES MOVED OUTSIDE @theme TO ENSURE EMISSION */

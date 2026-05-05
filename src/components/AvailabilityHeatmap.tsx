@@ -66,24 +66,24 @@ export default function AvailabilityHeatmap({
   };
 
   const getIntensityClass = (count: number, isPast: boolean) => {
-    if (isPast) return "bg-skin-base/50 text-skin-muted/20 cursor-default opacity-50"; 
+    if (isPast) return "bg-skin-base/50 text-skin-muted/20 cursor-default opacity-50 border-transparent"; 
     
-    if (count === 0) return "bg-skin-base text-skin-muted hover:bg-skin-card border border-skin-muted/20";
+    if (count === 0) return "bg-skin-base text-skin-muted hover:bg-skin-card border-skin-muted/20";
     
     const percentage = count / totalUsers;
-    if (percentage <= 0.25) return "bg-emerald-200 text-emerald-900 border-emerald-300";
-    if (percentage <= 0.50) return "bg-emerald-400 text-white border-emerald-500";
-    if (percentage <= 0.75) return "bg-emerald-600 text-white border-emerald-700";
-    return "bg-emerald-800 text-white font-bold border-emerald-900 shadow-md";
+    if (percentage <= 0.25) return "bg-skin-primary/20 text-skin-text border-skin-primary/30";
+    if (percentage <= 0.50) return "bg-skin-primary/45 text-skin-text border-skin-primary/40";
+    if (percentage <= 0.75) return "bg-skin-primary/70 text-skin-primary-fg border-skin-primary/60";
+    return "bg-skin-primary text-skin-primary-fg font-bold border-skin-primary shadow-md";
   };
 
   // NEW: Helper to ensure dots are always visible based on the background
   const getDotColorClass = (count: number) => {
     const percentage = count / totalUsers;
-    // If background is light (low count), use DARK dots
-    if (percentage <= 0.25) return "bg-emerald-800"; 
-    // If background is dark (high count), use WHITE dots
-    return "bg-white";
+    // If background is light (low count), use primary color for dots
+    if (percentage <= 0.50) return "bg-skin-primary"; 
+    // If background is dark (high count), use foreground contrast color
+    return "bg-skin-primary-fg";
   };
 
   const nextMonth = () => setViewDate(addMonths(viewDate, 1));
@@ -163,6 +163,7 @@ export default function AvailabilityHeatmap({
           const isSelectedByMe = !!dayData[currentUser];
           const isTodayDate = isToday(date);
           const isPast = isBefore(date, today);
+          const percentage = count / totalUsers;
 
           return (
             <button
@@ -174,9 +175,9 @@ export default function AvailabilityHeatmap({
               onPointerLeave={!isPast ? handlePointerUp : undefined}
               onContextMenu={(e) => !isPast && handleContextMenu(e, date, attendees)}
               className={cn(
-                "aspect-square w-full rounded-lg flex flex-col items-center justify-start pt-1.5 transition-all duration-100 relative select-none touch-manipulation border",
+                "aspect-square w-full rounded-lg flex flex-col items-center justify-start pt-1.5 transition-all duration-100 relative select-none touch-manipulation border active:scale-95",
                 getIntensityClass(count, isPast),
-                isSelectedByMe && !isPast && "border-2 border-skin-primary", 
+                isSelectedByMe && !isPast && "ring-2 ring-inset ring-skin-primary border-skin-primary", 
                 isTodayDate && !count && "border-2 border-dashed border-skin-muted/50"
               )}
             >
@@ -184,7 +185,10 @@ export default function AvailabilityHeatmap({
               
               {/* Checkmark Badge */}
               {isSelectedByMe && !isPast && (
-                <div className="absolute top-0.5 right-0.5 text-skin-primary drop-shadow-sm">
+                <div className={cn(
+                  "absolute top-0.5 right-0.5 drop-shadow-sm",
+                  percentage > 0.5 ? "text-skin-primary-fg" : "text-skin-primary"
+                )}>
                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="none">
                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                    </svg>
