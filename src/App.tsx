@@ -10,7 +10,6 @@ import AvailabilityHeatmap from "./components/AvailabilityHeatmap";
 import ProfileSelector from "./components/ProfileSelector";
 import ThemeSelector from "./components/ThemeSelector";
 import BackgroundOcean from "./components/BackgroundOcean";
-import logo from "./assets/logo.png";
 import Cropper from 'react-easy-crop';
 import { getCroppedImg, dataURLtoBlob } from './canvasUtils'; // <--- Import helper
 import { format } from "date-fns";
@@ -106,9 +105,7 @@ export default function App() {
         <div className="flex-none w-full flex justify-between items-center z-30 bg-skin-base/90 backdrop-blur-md px-4 py-3 border-b border-skin-muted/10">
            
            <div className="flex items-center gap-2 md:gap-3">
-              <img src={logo} alt="Logo" className="w-10 h-10 object-contain" />
-              
-              <div className="hidden md:block">
+              <div className="">
                 <h1 className="text-lg font-black text-skin-text tracking-tight leading-none">Free Ka Ba?</h1>
               </div>
            </div>

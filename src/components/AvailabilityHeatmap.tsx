@@ -245,7 +245,7 @@ export default function AvailabilityHeatmap({
                   <path d="M12 22V8m0 0a4 4 0 1 0-4-4 4 4 0 0 0 4 4zm0 14a7 7 0 0 1-7-7M12 18a7 7 0 0 0 7-7" />
                 </svg>
               </span>
-              <h3 className="text-sm font-black text-skin-text uppercase tracking-widest">Young stunna, I'm a big boss oma, pera naka-goma</h3>
+              <h3 className="text-sm font-black text-skin-text uppercase tracking-widest">Best Times to Dive In</h3>
            </div>
            
            <div className="grid grid-cols-1 gap-3">
