@@ -242,6 +242,7 @@ export default function App() {
                      <AvailabilityHeatmap 
                        currentUser={currentUser} 
                        friends={FRIEND_GROUP}
+                       userAvatars={userAvatars}
                        onDateInteract={(date, names) => setAttendeeModalData({ date, names })}
                      />
                   </div>
