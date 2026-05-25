@@ -71,7 +71,6 @@ export default function ProfileSelector({ friends, onSelect }: Props) {
               key={friend}
               onClick={() => handleProfileClick(friend)}
               className="group relative flex flex-col items-center transition-all duration-300"
-              style={{ animation: `buoyancy ${3 + (index % 3)}s ease-in-out infinite alternate`, animationDelay: `${index * 0.2}s` }}
             >
               {/* The Porthole / Bubble */}
               <div className={clsx(
